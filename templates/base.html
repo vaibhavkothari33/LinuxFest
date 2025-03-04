@@ -7,6 +7,8 @@
     <meta name="keywords" content="Linux, Open Source, Programming, Developer Conference, Linux Community">
     <title>{% block title %}Linux Fest{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/terminal-animations.css' %}">
     <script>
         tailwind.config = {
             theme: {
@@ -56,31 +58,36 @@
             }
         }
     </style>
+    <style>
+        @view-transition {
+            navigation: auto;
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body class="min-h-screen">
-    <header class="border-b border-terminal-green">
+    <header class="border-b border-terminal-green terminal-fade-in">
         <nav class="container mx-auto px-4 py-3">
             <div class="flex justify-between items-center">
-                <a href="{% url 'home' %}" class="text-terminal-green text-xl font-bold">[Linux Fest]</a>
+                <a href="{% url 'home' %}" class="text-terminal-green text-xl font-bold terminal-input-effect">[Linux Fest]</a>
                 <div class="space-x-4">
                     {% if user.is_authenticated %}
                         {% if user.is_staff %}
-                            <a href="{% url 'admin:index' %}" class="terminal-link">Admin</a>
-                            <a href="{% url 'dashboard:index' %}" class="terminal-link">Dashboard</a>
+                            <a href="{% url 'admin:index' %}" class="terminal-link terminal-link-hover terminal-command">Admin</a>
+                            <a href="{% url 'dashboard:index' %}" class="terminal-link terminal-link-hover terminal-command">Dashboard</a>
                         {% endif %}
-                        <a href="" class="terminal-link">Logout</a>
+                        <a href="" class="terminal-link terminal-link-hover terminal-command">Logout</a>
                     {% endif %}
                 </div>
             </div>
         </nav>
     </header>
 
-    <main class="container mx-auto px-4 py-8">
+    <main class="container mx-auto px-4 py-8 terminal-appear">
         {% if messages %}
             <div class="mb-8">
                 {% for message in messages %}
-                    <div class="p-4 rounded {% if message.tags == 'error' %}terminal-error{% elif message.tags == 'success' %}terminal-success{% elif message.tags == 'warning' %}terminal-warning{% endif %}">
+                    <div class="p-4 rounded terminal-message {% if message.tags == 'error' %}terminal-error{% elif message.tags == 'success' %}terminal-success terminal-success-indicator{% elif message.tags == 'warning' %}terminal-warning{% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -91,7 +98,7 @@
     </main>
 
     <footer class="border-t border-terminal-green mt-auto">
-        <div class="container mx-auto px-4 py-3 text-center text-terminal-green">
+        <div class="container mx-auto px-4 py-3 text-center text-terminal-green terminal-slide-in">
             <p>FOSS Club BU</p>
         </div>
     </footer>

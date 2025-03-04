@@ -1,0 +1,139 @@
+/* Basic animations */
+.cursor-blink {
+    animation: blink 1s step-end infinite;
+}
+
+.terminal-slide-in {
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.terminal-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Define cursor blink animation */
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* Simple slide in animation */
+@keyframes slideIn {
+    from {
+        transform: translateY(-10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Terminal input effect */
+.terminal-input-effect::after {
+    content: '▋';
+    display: inline-block;
+    animation: blink 1s step-end infinite;
+}
+
+/* Terminal appear effect */
+.terminal-appear {
+    opacity: 0;
+    animation: terminalAppear 0.2s ease-out forwards;
+}
+
+@keyframes terminalAppear {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Message animations */
+.terminal-message {
+    animation: messageSlide 0.3s ease-out;
+}
+
+@keyframes messageSlide {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Command execution animation */
+.terminal-command::before {
+    content: '> ';
+    opacity: 0;
+    animation: typeCommand 0.5s steps(2) forwards;
+}
+
+@keyframes typeCommand {
+    to {
+        opacity: 1;
+    }
+}
+
+/* Success indicator animation */
+.terminal-success-indicator {
+    position: relative;
+}
+
+.terminal-success-indicator::after {
+    content: '[OK]';
+    color: #50fa7b;
+    margin-left: 8px;
+    opacity: 0;
+    animation: indicatorAppear 0.3s ease-out 0.2s forwards;
+}
+
+@keyframes indicatorAppear {
+    to { opacity: 1; }
+}
+
+/* Button hover effect */
+.terminal-btn-hover {
+    transition: all 0.2s ease;
+}
+
+.terminal-btn-hover:hover {
+    background-color: #50fa7b;
+    color: #282a36;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(80, 250, 123, 0.2);
+}
+
+/* Link hover animation */
+.terminal-link-hover {
+    position: relative;
+    transition: color 0.2s ease;
+}
+
+.terminal-link-hover::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    bottom: -2px;
+    left: 0;
+    background-color: currentColor;
+    transition: width 0.2s ease;
+}
+
+.terminal-link-hover:hover::after {
+    width: 100%;
+}
