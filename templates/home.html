@@ -1,5 +1,6 @@
-{% extends "base.html" %}
 
+{% extends "base.html" %}
+{% load static %}
 {% block title %}Linux Fest - Open Source Technology Conference{% endblock %}
 
 {% block content %}
@@ -16,6 +17,10 @@
         </pre>
         <h1 class="md:hidden text-3xl font-bold">Linux Fest</h1>
         <p class="text-terminal-purple mt-4">/* An interactive meetup of Linux Enthusiasts */</p>
+    </div>
+
+    <div class="flex justify-center">
+        <div class="border border-terminal-green rounded-lg p-6"><img src="{% static 'FOSS_BU_DARK_H.png' %}" alt="Linux Fest" class="w-56"/></div>
     </div>
 
     <!-- Event Info -->
@@ -62,20 +67,20 @@
         </a>
         <p class="text-terminal-purple text-sm">Join the revolution. Register now.</p>
     </div>
+    <div class="text-center">
+            <span class="text-terminal-green text-3xl font-bold">[Sponsors]</span>
 
+        <p class="text-terminal-purple text-sm"></p>
+
+    </div>
     <!-- Community Stats -->
-    <div class="md:grid-cols-3 gap-6 mt-8 hidden">
-        <div class="text-center">
-            <p class="text-terminal-green text-3xl font-bold">300+</p>
-            <p class="text-terminal-purple">Expected Attendees</p>
+    <div class="flex gap-6 mt-8 justify-center flex-wrap">
+        <div class="text-center border border-terminal-green p-6 rounded-lg w-72">
+            <p class="text-terminal-green text-3xl font-bold">To be announced soon</p>
         </div>
-        <div class="text-center">
+        <div class="text-center border border-terminal-green p-6 rounded-lg w-72 hidden">
             <p class="text-terminal-green text-3xl font-bold">20+</p>
             <p class="text-terminal-purple">Expert Speakers</p>
-        </div>
-        <div class="text-center">
-            <p class="text-terminal-green text-3xl font-bold">15+</p>
-            <p class="text-terminal-purple">Workshop Sessions</p>
         </div>
     </div>
 </div>
