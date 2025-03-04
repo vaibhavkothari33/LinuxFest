@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Events | Linux Fest{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="bg-terminal-black border border-terminal-green p-8 rounded-lg">
+        <h1 class="text-2xl font-bold text-terminal-green mb-8">[Available Events]</h1>
+        
+        {% if events %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for event in events %}
+                    <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg hover:border-terminal-purple transition-colors duration-200">
+                        <div class="flex justify-between items-start mb-4">
+                            <h2 class="text-xl font-bold text-terminal-green">
+                                {{ event.name }}
+                            </h2>
+                            {% if event.registration_open %}
+                                <span class="text-xs bg-terminal-green text-terminal-black px-2 py-1 rounded">Open</span>
+                            {% else %}
+                                <span class="text-xs bg-terminal-red text-terminal-white px-2 py-1 rounded">Closed</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="space-y-2 mb-4">
+                            <p class="text-terminal-purple text-sm">$ date --event</p>
+                            <p class="ml-4 text-terminal-white text-sm">
+                                {{ event.date }} @ {{ event.time|time:"H:i" }}
+                            </p>
+                            
+                            <p class="text-terminal-purple text-sm">$ locate venue</p>
+                            <p class="ml-4 text-terminal-white text-sm">{{ event.location }}</p>
+                            
+                            <p class="text-terminal-purple text-sm">$ count slots</p>
+                            <p class="ml-4 text-terminal-white text-sm">
+                                Available: {{ event.get_available_slots }} / {{ event.max_attendees }}
+                            </p>
+                        </div>
+                        
+                        <div class="flex justify-between items-center mt-6">
+                            <a href="{% url 'events:detail' event.id %}" 
+                               class="terminal-link text-sm">
+                                View Details >
+                            </a>
+                            
+                            {% if event.registration_open and event.get_available_slots > 0 %}
+                                <a href="{% url 'events:detail' event.id %}" 
+                                   class="terminal-button text-sm">
+                                    Register Now >
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center text-terminal-purple">
+                <p>> No events scheduled at the moment_</p>
+                <p class="mt-2">Check back later for updates</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

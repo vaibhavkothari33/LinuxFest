@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Registration rejection email for {{ event.name }}">
+    <meta name="keywords" content="Linux Fest, event, registration, rejected">
+    <title>Registration Update - {{ event.name }}</title>
+</head>
+<body>
+    <p>Hello,</p>
+
+    <p>We regret to inform you that your registration for <strong>{{ event.name }}</strong> has been rejected.</p>
+
+    <p>Event Details:</p>
+    <ul>
+        <li>Date: {{ event.date|date:"F j, Y" }}</li>
+        <li>Time: {{ event.time|time:"g:i A" }}</li>
+        <li>Location: {{ event.location }}</li>
+    </ul>
+
+    <p>If you have any questions, please contact us.</p>
+
+    <p>Regards,<br>
+    The Linux Fest Team</p>
+</body>
+</html>

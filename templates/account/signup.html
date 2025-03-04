@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}{% trans "Sign Up" %} | Linux Fest{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg">
+        <h1 class="text-xl font-bold text-terminal-green mb-6">[Create Account]</h1>
+        
+        <form class="space-y-4" method="post" action="{% url 'account_signup' %}">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="terminal-error p-4 rounded">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <p class="text-sm">{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div>
+                <label class="text-terminal-purple" for="{{ form.email.id_for_label }}">
+                    > Email_
+                </label>
+                {% render_field form.email class="terminal-input w-full mt-1" placeholder="user@example.com" %}
+                {% if form.email.help_text %}
+                    <p class="mt-1 text-xs text-terminal-purple">{{ form.email.help_text }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label class="text-terminal-purple" for="{{ form.password1.id_for_label }}">
+                    > Password_
+                </label>
+                {% render_field form.password1 class="terminal-input w-full mt-1" placeholder="••••••••" %}
+                {% if form.password1.help_text %}
+                    <div class="mt-1 text-xs text-terminal-purple space-y-1">
+                        {% for line in form.password1.help_text.split %}
+                            <p>> {{ line }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label class="text-terminal-purple" for="{{ form.password2.id_for_label }}">
+                    > Confirm Password_
+                </label>
+                {% render_field form.password2 class="terminal-input w-full mt-1" placeholder="••••••••" %}
+                {% if form.password2.help_text %}
+                    <p class="mt-1 text-xs text-terminal-purple">{{ form.password2.help_text }}</p>
+                {% endif %}
+            </div>
+            
+            {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+            {% endif %}
+            
+            <div class="flex items-start">
+                <div class="flex items-center h-5">
+                    <input type="checkbox" required class="bg-terminal-black border-terminal-green text-terminal-green rounded focus:ring-terminal-green">
+                </div>
+                <div class="ml-3">
+                    <label class="text-sm text-terminal-purple">
+                        I agree to the <a href="#" class="terminal-link">Terms of Service</a> and 
+                        <a href="#" class="terminal-link">Privacy Policy</a>
+                    </label>
+                </div>
+            </div>
+            
+            <button type="submit" class="terminal-button w-full">
+                {% trans "Sign Up" %} >
+            </button>
+        </form>
+        
+        <div class="mt-6 pt-6 border-t border-terminal-green">
+            <p class="text-center text-terminal-purple">
+                Already have an account? 
+                <a href="{{ login_url }}" class="terminal-link">Sign in here</a>
+            </p>
+        </div>
+    </div>
+    
+    <div class="mt-4 text-center">
+        <p class="text-sm text-terminal-purple">
+            By signing up, you'll receive important updates about:
+        </p>
+        <ul class="text-sm text-terminal-green mt-2 space-y-1">
+            <li>> Event schedules and updates</li>
+            <li>> Workshop registrations</li>
+            <li>> Community announcements</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

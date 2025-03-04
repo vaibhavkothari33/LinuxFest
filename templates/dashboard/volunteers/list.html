@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Volunteers | Linux Fest Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-2xl font-bold text-terminal-green">[Volunteer Management]</h1>
+        <a href="{% url 'dashboard:volunteer_create' %}" class="terminal-button">
+            Add Volunteer >
+        </a>
+    </div>
+
+    <div class="bg-terminal-black border border-terminal-green rounded-lg overflow-hidden">
+        {% if volunteers %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="text-left border-b border-terminal-green">
+                            <th class="px-6 py-3 text-terminal-purple">Volunteer</th>
+                            <th class="px-6 py-3 text-terminal-purple">Status</th>
+                            <th class="px-6 py-3 text-terminal-purple">Events</th>
+                            <th class="px-6 py-3 text-terminal-purple">Check-ins</th>
+                            <th class="px-6 py-3 text-terminal-purple">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for volunteer in volunteers %}
+                            <tr class="border-b border-terminal-green last:border-0">
+                                <td class="px-6 py-4">
+                                    <div class="text-terminal-white font-bold">
+                                        {{ volunteer.user.get_full_name|default:volunteer.user.email }}
+                                    </div>
+                                    <div class="text-sm text-terminal-purple">
+                                        {{ volunteer.user.email }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs rounded
+                                        {% if volunteer.is_active %}
+                                            bg-terminal-green text-terminal-black
+                                        {% else %}
+                                            bg-terminal-red text-terminal-white
+                                        {% endif %}">
+                                        {{ volunteer.is_active|yesno:"Active,Inactive" }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-terminal-white">
+                                    {{ volunteer.events.count }}
+                                </td>
+                                <td class="px-6 py-4 text-terminal-white">
+                                    {{ volunteer.checked_in_registrations.count }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex space-x-4">
+                                        <a href="{% url 'dashboard:volunteer_edit' volunteer.id %}" 
+                                           class="terminal-link">Edit</a>
+                                        <form method="post" 
+                                              action="{% url 'dashboard:volunteer_delete' volunteer.id %}"
+                                              class="inline"
+                                              onsubmit="return confirm('Are you sure you want to remove this volunteer?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="terminal-link text-terminal-red">
+                                                Remove
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="p-8 text-center">
+                <p class="text-terminal-purple">No volunteers added yet_</p>
+                <p class="mt-2 text-sm text-terminal-white">
+                    Click the "Add Volunteer" button to grant check-in privileges to users
+                </p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="mt-6 text-center">
+        <p class="text-sm text-terminal-purple">
+            Tip: Make sure volunteers have accounts before adding them to the system
+        </p>
+    </div>
+</div>
+{% endblock %}

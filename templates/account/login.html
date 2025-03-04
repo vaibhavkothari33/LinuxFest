@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}{% trans "Sign In" %} | Linux Fest{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg">
+        <h1 class="text-xl font-bold text-terminal-green mb-6">[Sign In]</h1>
+        
+        <form class="space-y-4" method="post" action="{% url 'account_login' %}">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="terminal-error p-4 rounded">
+                    <p class="text-sm">Invalid login credentials. Please try again.</p>
+                </div>
+            {% endif %}
+            
+            <div>
+                <label class="text-terminal-purple" for="{{ form.login.id_for_label }}">
+                    > Email_
+                </label>
+                {% render_field form.login class="terminal-input w-full mt-1" placeholder="user@example.com" %}
+            </div>
+            
+            <div>
+                <label class="text-terminal-purple" for="{{ form.password.id_for_label }}">
+                    > Password_
+                </label>
+                {% render_field form.password class="terminal-input w-full mt-1" placeholder="••••••••" %}
+            </div>
+            
+            <div class="flex items-center">
+                <input type="checkbox" name="{{ form.remember.name }}" id="{{ form.remember.id_for_label }}" 
+                       class="bg-terminal-black border-terminal-green text-terminal-green rounded focus:ring-terminal-green">
+                <label for="{{ form.remember.id_for_label }}" class="ml-2 text-sm text-terminal-purple">
+                    Remember session
+                </label>
+            </div>
+            
+            {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+            {% endif %}
+            
+            <div class="flex justify-between items-center">
+                <button type="submit" class="terminal-button">
+                    {% trans "Sign In" %} >
+                </button>
+                <a href="{% url 'account_reset_password' %}" class="text-sm terminal-link">
+                    Forgot Password?
+                </a>
+            </div>
+        </form>
+        
+        <div class="mt-6 pt-6 border-t border-terminal-green">
+            <p class="text-center text-terminal-purple">
+                New to Linux Fest? 
+                <a href="{{ signup_url }}" class="terminal-link">Register here</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

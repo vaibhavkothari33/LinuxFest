@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Registration Detail - {{ registration.id }} | Linux Fest Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-terminal-green">[Registration Detail - #{{ registration.id }}]</h1>
+        <p class="text-terminal-purple">
+            Event: {{ registration.event.name }}
+        </p>
+    </div>
+
+    <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg mb-8">
+        <h2 class="text-xl font-bold text-terminal-green mb-4">[Registration Information]</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-terminal-purple">Full Name:</p>
+                <p class="text-terminal-white">{{ registration.name }}</p>
+            </div>
+            <div>
+                <p class="text-terminal-purple">Email:</p>
+                <p class="text-terminal-white">{{ registration.email }}</p>
+            </div>
+            <div>
+                <p class="text-terminal-purple">Registration Date:</p>
+                <p class="text-terminal-white">{{ registration.registration_date|date:"Y-m-d H:i" }}</p>
+            </div>
+            <div>
+                <p class="text-terminal-purple">Registration UUID:</p>
+                <p class="text-terminal-white">{{ registration.uuid }}</p>
+            </div>
+            <div>
+                <p class="text-terminal-purple">Status:</p>
+                <p class="{% if registration.status == 'approved' %}text-terminal-green
+                          {% elif registration.status == 'pending' %}text-terminal-yellow
+                          {% else %}text-terminal-red{% endif %}">
+                    {{ registration.status|title }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg">
+        <h2 class="text-xl font-bold text-terminal-green mb-4">[Form Responses]</h2>
+        <div class="space-y-4">
+            {% for response in responses %}
+                <div class="border-b border-terminal-green pb-2 last:border-0">
+                    <p class="text-terminal-purple">{{ response.field.label }}:</p>
+                    <p class="text-terminal-white">
+                        {% if response.field.field_type == 'file' and response.file %}
+                            <a href="{{ response.file.url }}" class="terminal-link" target="_blank">
+                                Download File >
+                            </a>
+                        {% else %}
+                            {{ response.value }}
+                        {% endif %}
+                    </p>
+                </div>
+            {% empty %}
+                <p class="text-terminal-purple">No additional responses found.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if registration.qr_code %}
+    <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg mt-8">
+        <h2 class="text-xl font-bold text-terminal-green mb-4">[QR Code]</h2>
+        <div class="flex justify-center">
+            <img src="{{ registration.qr_code.url }}" alt="Registration QR Code" width="192" height="192" class="w-48 h-48">
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="mt-8 flex justify-between">
+        <a href="{% url 'dashboard:registration_list' %}" class="terminal-button bg-terminal-black">
+            < Back to List
+        </a>
+        <div>
+            {% if registration.status == 'pending' %}
+                <div class="space-x-4">
+                    <form method="post" action="{% url 'dashboard:approve_registration' registration.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="terminal-button bg-terminal-green">
+                            Approve >
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'dashboard:reject_registration' registration.id %}" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="terminal-button bg-terminal-red">
+                            Reject >
+                        </button>
+                    </form>
+                </div>
+            {% elif registration.status == 'approved' %}
+                <a href="{% url 'dashboard:send_approval_email' registration.id %}" class="terminal-button bg-terminal-green">
+                    Send Approval Email & QR Code >
+                </a>
+            {% elif registration.status == 'rejected' %}
+                <a href="{% url 'dashboard:send_rejection_email' registration.id %}" class="terminal-button bg-terminal-red">
+                    Send Rejection Email >
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

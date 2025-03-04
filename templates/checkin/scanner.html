@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}QR Code Scanner | Linux Fest{% endblock %}
+
+{% block extra_head %}
+<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+<link rel="stylesheet" href="{% static 'css/checkin.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-4">
+    <div class="text-center mb-8">
+        <h1 class="text-2xl font-bold text-terminal-green">[QR Code Scanner]</h1>
+        <p class="text-terminal-purple mt-2">Scan attendee QR codes to check them in</p>
+    </div>
+
+    <!-- Camera Preview -->
+    <div class="bg-terminal-black border border-terminal-green p-4 rounded-lg mb-8">
+        <video id="video" class="w-full max-w-2xl mx-auto rounded-lg"></video>
+        <div class="mt-4 flex justify-center space-x-4">
+            <select id="cameraSelect" class="terminal-input bg-terminal-black text-terminal-green border-terminal-green"></select>
+            <button id="startButton" class="terminal-button bg-terminal-green">Start Scanner</button>
+            <button id="stopButton" class="terminal-button bg-terminal-red stop-button">Stop Scanner</button>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="result" class="hidden bg-terminal-black border border-terminal-green p-4 rounded-lg">
+        <div id="resultContent"></div>
+        <div id="checkinActions" class="mt-4 flex justify-end hidden">
+            <button id="checkinButton" class="terminal-button bg-terminal-green">
+                Confirm Check-in >
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('video');
+    const cameraSelect = document.getElementById('cameraSelect');
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    const resultDiv = document.getElementById('result');
+    const resultContent = document.getElementById('resultContent');
+    const checkinActions = document.getElementById('checkinActions');
+    const checkinButton = document.getElementById('checkinButton');
+    
+    let stream = null;
+    let scanning = false;
+    let canvasElement = document.createElement('canvas');
+    let canvas = canvasElement.getContext('2d');
+    let currentRegistrationId = null;
+
+    // Get available cameras
+    async function getCameras() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            
+            cameraSelect.innerHTML = '';
+            videoDevices.forEach(device => {
+                const option = document.createElement('option');
+                option.value = device.deviceId;
+                option.text = device.label || `Camera ${cameraSelect.length + 1}`;
+                cameraSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error getting cameras:', error);
+        }
+    }
+
+    // Start video stream
+    async function startVideo(deviceId = null) {
+        const constraints = {
+            video: deviceId ? { deviceId: { exact: deviceId } } : true
+        };
+
+        try {
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = stream;
+            video.play();
+            scanning = true;
+            startButton.classList.add('hidden');
+            stopButton.classList.remove('hidden');
+            scan();
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            alert('Error accessing camera. Please ensure you have granted camera permissions.');
+        }
+    }
+
+    // Stop video stream
+    function stopVideo() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+            scanning = false;
+            startButton.classList.remove('hidden');
+            stopButton.classList.add('hidden');
+        }
+    }
+
+    // Process scan result
+    function processScanResult(uuid) {
+        fetch('/checkin/lookup/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ uuid: uuid })
+        })
+        .then(response => response.json())
+        .then(data => {
+            displayResult(data);
+            if (data.status === 'success') {
+                currentRegistrationId = data.registration.id;
+                checkinActions.classList.remove('hidden');
+            } else {
+                currentRegistrationId = null;
+                checkinActions.classList.add('hidden');
+                playSound(false);
+            }
+        })
+        .catch(error => {
+            displayResult({
+                status: 'error',
+                message: 'Error looking up registration',
+                error: error.message
+            });
+            currentRegistrationId = null;
+            checkinActions.classList.add('hidden');
+            playSound(false);
+        });
+    }
+
+    // Process check-in
+    function processCheckin() {
+        if (!currentRegistrationId) return;
+
+        fetch(`/checkin/process/${currentRegistrationId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Update display with check-in confirmation
+                resultContent.innerHTML += `
+                    <div class="mt-4 p-4 border border-terminal-green rounded-lg">
+                        <h3 class="text-lg font-bold text-terminal-green mb-2">✓ Check-in Successful</h3>
+                        <p class="text-terminal-white">Checked in at: ${data.check_in_time}</p>
+                    </div>
+                `;
+                checkinActions.classList.add('hidden');
+                playSound(true);
+            } else {
+                displayError(data.message);
+                playSound(false);
+            }
+        })
+        .catch(error => {
+            displayError('Error processing check-in');
+            playSound(false);
+        });
+    }
+
+    // Display scan result
+    function displayResult(data) {
+        resultDiv.classList.remove('hidden');
+        const registration = data.registration;
+        
+        let html = `
+            <div class="p-4 ${data.status === 'success' ? 'border-terminal-green' : 'border-terminal-red'} border rounded-lg">
+                <h3 class="text-lg font-bold mb-4 ${data.status === 'success' ? 'text-terminal-green' : 'text-terminal-red'}">
+                    ${data.message}
+                </h3>
+                ${registration ? `
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-terminal-purple">Name:</div>
+                        <div class="text-terminal-white">${registration.name}</div>
+                        
+                        <div class="text-terminal-purple">Email:</div>
+                        <div class="text-terminal-white">${registration.email}</div>
+                        
+                        <div class="text-terminal-purple">Event:</div>
+                        <div class="text-terminal-white">${registration.event}</div>
+                        
+                        <div class="text-terminal-purple">Status:</div>
+                        <div class="text-terminal-white">${registration.status}</div>
+                        
+                        ${data.check_in_time ? `
+                            <div class="text-terminal-purple">Checked In At:</div>
+                            <div class="text-terminal-white">${data.check_in_time}</div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+        
+        resultContent.innerHTML = html;
+    }
+
+    // Display error message
+    function displayError(message) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'mt-4 p-4 border border-terminal-red rounded-lg';
+        errorDiv.innerHTML = `
+            <h3 class="text-lg font-bold text-terminal-red mb-2">× Error</h3>
+            <p class="text-terminal-white">${message}</p>
+        `;
+        resultContent.appendChild(errorDiv);
+    }
+
+    // Play sound based on result
+    function playSound(success) {
+        const audio = new Audio(success ? '/static/sounds/success.mp3' : '/static/sounds/error.mp3');
+        audio.play();
+    }
+
+    // Scan for QR codes
+    function scan() {
+        if (!scanning) return;
+
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvasElement.height = video.videoHeight;
+            canvasElement.width = video.videoWidth;
+            canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+            const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+            
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            if (code) {
+                processScanResult(code.data);
+                // Pause scanning briefly after successful scan
+                scanning = false;
+                setTimeout(() => { scanning = true; }, 2000);
+            }
+        }
+        requestAnimationFrame(scan);
+    }
+
+    // Get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Event Listeners
+    startButton.addEventListener('click', () => startVideo(cameraSelect.value));
+    stopButton.addEventListener('click', stopVideo);
+    checkinButton.addEventListener('click', processCheckin);
+    cameraSelect.addEventListener('change', () => {
+        if (scanning) {
+            stopVideo();
+            startVideo(cameraSelect.value);
+        }
+    });
+
+    // Initialize
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            stream.getTracks().forEach(track => track.stop());
+            getCameras();
+        })
+        .catch(error => {
+            console.error('Error accessing camera:', error);
+            alert('Error accessing camera. Please ensure you have granted camera permissions.');
+        });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load widget_tweaks %}
+
+{% block title %}Add Form Field | Linux Fest Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-terminal-green">[Add Form Field]</h1>
+        <p class="text-terminal-purple mt-2">Event: {{ event.name }}</p>
+    </div>
+
+    <div class="bg-terminal-black border border-terminal-green p-8 rounded-lg">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="terminal-error p-4 rounded mb-6">
+                    Please correct the errors below.
+                </div>
+            {% endif %}
+
+            <div>
+                <label class="text-terminal-purple block mb-2" for="label">
+                    > Field Label_
+                </label>
+                <input type="text" name="label" id="label" required
+                       class="terminal-input w-full"
+                       placeholder="e.g., T-shirt Size">
+            </div>
+
+            <div>
+                <label class="text-terminal-purple block mb-2" for="field_type">
+                    > Field Type_
+                </label>
+                <select name="field_type" id="field_type" required class="terminal-input w-full">
+                    <option value="">Select a field type...</option>
+                    {% for value, label in field_types %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" name="required" id="required"
+                       class="bg-terminal-black border-terminal-green text-terminal-green 
+                              rounded focus:ring-terminal-green">
+                <label class="text-terminal-purple" for="required">
+                    Required field
+                </label>
+            </div>
+
+            <div>
+                <label class="text-terminal-purple block mb-2" for="placeholder">
+                    > Placeholder (optional)_
+                </label>
+                <input type="text" name="placeholder" id="placeholder"
+                       class="terminal-input w-full"
+                       placeholder="e.g., Enter your size">
+            </div>
+
+            <div>
+                <label class="text-terminal-purple block mb-2" for="choices">
+                    > Choices (for 'Choice' type, JSON array)_
+                </label>
+                <textarea name="choices" id="choices" rows="3"
+                          class="terminal-input w-full"
+                          placeholder='e.g., ["Small", "Medium", "Large"]'></textarea>
+                <p class="mt-2 text-sm text-terminal-purple">
+                    Enter choices as a JSON array. Only applicable for 'Choice' field type.
+                </p>
+            </div>
+
+            <div>
+                <label class="text-terminal-purple block mb-2" for="conditional_field">
+                    > Conditional Field (optional)_
+                </label>
+                <select name="conditional_field" id="conditional_field" class="terminal-input w-full">
+                    <option value="">None</option>
+                    {% for field in event.form_fields.all %}
+                        <option value="{{ field.id }}">{{ field.label }}</option>
+                    {% endfor %}
+                </select>
+                <p class="mt-2 text-sm text-terminal-purple">
+                    Select a field that will control the visibility of this field.
+                </p>
+            </div>
+
+            <div>
+                <label class="text-terminal-purple block mb-2" for="conditional_value">
+                    > Conditional Value (optional)_
+                </label>
+                <input type="text" name="conditional_value" id="conditional_value"
+                       class="terminal-input w-full"
+                       placeholder="e.g., Yes">
+                <p class="mt-2 text-sm text-terminal-purple">
+                    Enter the value of the controlling field that will make this field visible.
+                </p>
+            </div>
+
+            <div class="flex justify-between pt-6">
+                <a href="{% url 'dashboard:form_builder' event.id %}" class="terminal-button bg-terminal-black">
+                    < Back
+                </a>
+                <button type="submit" class="terminal-button">
+                    Add Field >
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="mt-6 text-center">
+        <p class="text-sm text-terminal-purple">
+            Tip: You can reorder fields in the form builder after adding them.
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}{{ event.name }} | Linux Fest{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-terminal-black border border-terminal-green p-8 rounded-lg">
+        <h1 class="text-2xl font-bold text-terminal-green mb-4">[{{ event.name }}]</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div>
+                <p class="text-terminal-purple">$ date --event</p>
+                <p class="ml-4 text-terminal-white">
+                    {{ event.date }} @ {{ event.time|time:"H:i" }}
+                </p>
+            </div>
+            <div>
+                <p class="text-terminal-purple">$ locate venue</p>
+                <p class="ml-4 text-terminal-white">{{ event.location }}</p>
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <p class="text-terminal-purple">$ cat description.txt</p>
+            <p class="ml-4 text-terminal-white">{{ event.description }}</p>
+        </div>
+
+        {% if event.registration_open %}
+            <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg">
+                <h2 class="text-xl font-bold text-terminal-green mb-6">[Registration Form]</h2>
+                
+                <form method="post" action="{% url 'events:register' event.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="space-y-6">
+                        {% for field in form %}
+                            <div class="form-field" id="field_container_{{ field.name }}"
+                                {% if field.field.conditional_field %}
+                                    data-conditional-field="{{ field.field.conditional_field.id }}"
+                                    data-conditional-value="{{ field.field.conditional_value }}"
+                                    data-originally-required="{{ field.field.originally_required|yesno:"true,false" }}"
+                                    style="display: none;"
+                                {% endif %}>
+                                <label class="text-terminal-purple block mb-2" for="{{ field.id_for_label }}">
+                                    > {{ field.label }}_
+                                    {% if field.field.originally_required %}
+                                        <span class="text-terminal-red required-indicator" id="required_indicator_{{ field.name }}">*</span>
+                                    {% endif %}
+                                </label>
+                                {% with input_classes='terminal-input w-full' %}
+                                  {% if field.field.widget.attrs.class %}
+                                    {% with input_classes=input_classes|add:" "|add:field.field.widget.attrs.class %}
+                                      {% render_field field class=input_classes placeholder=field.help_text %}
+                                    {% endwith %}
+                                  {% else %}
+                                    {% render_field field class=input_classes placeholder=field.help_text %}
+                                  {% endif %}
+                                {% endwith %}
+                                {% if field.errors %}
+                                    <div class="terminal-error mt-1">
+                                        {% for error in field.errors %}
+                                            <p class="text-sm">{{ error }}</p>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-8">
+                        <button type="submit" class="terminal-button w-full">
+                            Register Now >
+                        </button>
+                    </div>
+                </form>
+            </div>
+        {% else %}
+            <div class="terminal-warning p-4 rounded-lg">
+                <p>Registration is closed for this event</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (!form) return;
+
+    // Get all conditional fields
+    const conditionalFields = document.querySelectorAll('[data-conditional-field]');
+    
+    // Function to check and update conditional field visibility
+    function updateConditionalFields(controllingField) {
+        const controllingValue = controllingField.value;
+        const controllingId = controllingField.id.split('_').pop();
+        
+        conditionalFields.forEach(container => {
+            if (container.dataset.conditionalField === controllingId) {
+                const requiredValue = container.dataset.conditionalValue;
+                const originallyRequired = container.dataset.originallyRequired === 'true';
+                const field = container.querySelector('input, select, textarea');
+                
+                if (controllingValue === requiredValue) {
+                    // Show field
+                    container.style.display = 'block';
+                    if (originallyRequired) {
+                        field.required = true;
+                        field.setAttribute('required', 'required');
+                    }
+                } else {
+                    // Hide field
+                    container.style.display = 'none';
+                    field.required = false;
+                    field.removeAttribute('required');
+                    field.value = '';  // Clear the field value
+                    
+                    // Clear any validation messages
+                    const errorDiv = container.querySelector('.terminal-error');
+                    if (errorDiv) {
+                        errorDiv.remove();
+                    }
+                }
+            }
+        });
+    }
+
+    // Set up event listeners for all form fields that might control other fields
+    form.querySelectorAll('input, select, textarea').forEach(field => {
+        field.addEventListener('change', function() {
+            updateConditionalFields(this);
+        });
+        // Initial check for pre-filled values
+        updateConditionalFields(field);
+    });
+});
+</script>
+{% endblock %}

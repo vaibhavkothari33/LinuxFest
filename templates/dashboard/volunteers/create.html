@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Add Volunteer | Linux Fest Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-terminal-green">[Add New Volunteer]</h1>
+        <p class="text-terminal-purple mt-2">Grant check-in privileges to a user_</p>
+    </div>
+
+    <div class="bg-terminal-black border border-terminal-green p-8 rounded-lg">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="terminal-error p-4 rounded mb-6">
+                    Please correct the errors below.
+                </div>
+            {% endif %}
+
+            <div>
+                <label class="text-terminal-purple block mb-2" for="user">
+                    > Select User_
+                </label>
+                <select name="user" id="user" required class="terminal-input w-full">
+                    <option value="">Choose a user...</option>
+                    {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.email }}</option>
+                    {% endfor %}
+                </select>
+                <p class="mt-2 text-sm text-terminal-purple">
+                    The user must have an account before they can be made a volunteer
+                </p>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" name="is_active" id="is_active"
+                       class="bg-terminal-black border-terminal-green text-terminal-green 
+                              rounded focus:ring-terminal-green" checked>
+                <label class="text-terminal-purple" for="is_active">
+                    Active volunteer
+                </label>
+            </div>
+
+            <div class="flex justify-between pt-6">
+                <a href="{% url 'dashboard:volunteer_list' %}" class="terminal-button bg-terminal-black">
+                    < Back
+                </a>
+                <button type="submit" class="terminal-button">
+                    Add Volunteer >
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="mt-6 text-center">
+        <p class="text-sm text-terminal-purple">
+            Volunteers can scan QR codes and check in attendees at events
+        </p>
+    </div>
+</div>
+{% endblock %}

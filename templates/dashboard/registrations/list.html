@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Registrations | Linux Fest Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-terminal-green">[All Registrations]</h1>
+    </div>
+
+    <!-- Registration List -->
+    <div class="bg-terminal-black border border-terminal-green rounded-lg overflow-hidden">
+        <div class="p-6">
+            <h2 class="text-xl font-bold text-terminal-green mb-6">[Registration List]</h2>
+            
+            {% if registrations %}
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left border-b border-terminal-green">
+                                <th class="px-4 py-2 text-terminal-purple"># ID</th>
+                                <th class="px-4 py-2 text-terminal-purple">Event</th>
+                                <th class="px-4 py-2 text-terminal-purple">Name</th>
+                                <th class="px-4 py-2 text-terminal-purple">Email</th>
+                                <th class="px-4 py-2 text-terminal-purple">Date</th>
+                                <th class="px-4 py-2 text-terminal-purple">Status</th>
+                                <th class="px-4 py-2 text-terminal-purple">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for registration in registrations %}
+                                <tr class="border-b border-terminal-green last:border-0">
+                                    <td class="px-4 py-3 text-terminal-white">{{ registration.id }}</td>
+                                    <td class="px-4 py-3 text-terminal-white">{{ registration.event.name }}</td>
+                                    <td class="px-4 py-3 text-terminal-white">{{ registration.name }}</td>
+                                    <td class="px-4 py-3 text-terminal-white">{{ registration.email }}</td>
+                                    <td class="px-4 py-3 text-terminal-white">{{ registration.registration_date|date:"Y-m-d" }}</td>
+                                    <td class="px-4 py-3">
+                                        <span class="px-2 py-1 text-xs rounded
+                                            {% if registration.status == 'approved' %}bg-terminal-green text-terminal-black
+                                            {% elif registration.status == 'pending' %}bg-terminal-yellow text-terminal-black
+                                            {% else %}bg-terminal-red text-terminal-white{% endif %}">
+                                            {{ registration.status|title }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex space-x-2">
+                                            <a href="{% url 'dashboard:registration_detail' registration.id %}" 
+                                               class="terminal-link text-sm">
+                                                View >
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-terminal-purple text-center py-8">
+                    No registrations found.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

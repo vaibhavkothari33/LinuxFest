@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Linux Fest - Open Source Technology Conference{% endblock %}
+
+{% block content %}
+<div class="flex flex-col space-y-8">
+    <!-- Terminal Header -->
+    <div class="text-terminal-green font-mono text-center">
+        <pre class="hidden md:block">
+ _     _                  ______         _   
+| |   (_)                |  ____|       | |  
+| |    _ _ __  _   ___  | |__ ___  ___| |_ 
+| |   | | '_ \| | | \ \/ / __/ _ \/ __| __|
+| |___| | | | | |_| |>  <| ||  __/\__ \ |_ 
+|_____|_|_| |_|\__,_/_/\_\_| \___||___/\__|
+        </pre>
+        <h1 class="md:hidden text-3xl font-bold">Linux Fest</h1>
+        <p class="text-terminal-purple mt-4">/* Where Open Source Meets Innovation */</p>
+    </div>
+
+    <!-- Event Info -->
+    <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg">
+        <h2 class="text-xl font-bold text-terminal-green mb-4">[Event Details]</h2>
+        <div class="terminal-style space-y-2">
+            <p><span class="text-terminal-purple">$</span> <span class="text-terminal-yellow">echo</span> "Join us for a day of technology, innovation, and community!"</p>
+            <p><span class="text-terminal-purple">$</span> <span class="text-terminal-yellow">date</span> --conference</p>
+            <p class="ml-4">Date: Coming Soon</p>
+            <p><span class="text-terminal-purple">$</span> <span class="text-terminal-yellow">locate</span> "venue"</p>
+            <p class="ml-4">Location: TBA</p>
+        </div>
+    </div>
+
+    <!-- Features -->
+    <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg">
+            <h3 class="text-lg font-bold text-terminal-green mb-4">[Featured Tracks]</h3>
+            <ul class="space-y-2">
+                <li><span class="text-terminal-purple">>></span> Linux Kernel Development</li>
+                <li><span class="text-terminal-purple">>></span> Open Source Security</li>
+                <li><span class="text-terminal-purple">>></span> DevOps & Container Technologies</li>
+                <li><span class="text-terminal-purple">>></span> System Administration</li>
+                <li><span class="text-terminal-purple">>></span> Community & Collaboration</li>
+            </ul>
+        </div>
+
+        <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg">
+            <h3 class="text-lg font-bold text-terminal-green mb-4">[Why Attend?]</h3>
+            <ul class="space-y-2">
+                <li><span class="text-terminal-purple">>></span> Expert-led workshops and talks</li>
+                <li><span class="text-terminal-purple">>></span> Networking opportunities</li>
+                <li><span class="text-terminal-purple">>></span> Live demonstrations</li>
+                <li><span class="text-terminal-purple">>></span> Community showcases</li>
+                <li><span class="text-terminal-purple">>></span> Exclusive swag and goodies</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center space-y-4">
+        <a href="{% url 'events:list' %}" class="terminal-button inline-block">
+            <span class="text-terminal-black">> Browse Events_</span>
+        </a>
+        <p class="text-terminal-purple text-sm">Join the revolution. Register now.</p>
+    </div>
+
+    <!-- Community Stats -->
+    <div class="grid md:grid-cols-3 gap-6 mt-8">
+        <div class="text-center">
+            <p class="text-terminal-green text-3xl font-bold">500+</p>
+            <p class="text-terminal-purple">Expected Attendees</p>
+        </div>
+        <div class="text-center">
+            <p class="text-terminal-green text-3xl font-bold">20+</p>
+            <p class="text-terminal-purple">Expert Speakers</p>
+        </div>
+        <div class="text-center">
+            <p class="text-terminal-green text-3xl font-bold">15+</p>
+            <p class="text-terminal-purple">Workshop Sessions</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

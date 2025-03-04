@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Linux Fest - A premier open source and Linux technology conference featuring workshops, talks, and networking opportunities">
+    <meta name="keywords" content="Linux, Open Source, Technology Conference, Programming, Developer Conference, Linux Community">
+    <title>{% block title %}Linux Fest{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        terminal: {
+                            black: '#282a36',
+                            green: '#50fa7b',
+                            purple: '#bd93f9',
+                            red: '#ff5555',
+                            yellow: '#f1fa8c',
+                            white: '#f8f8f2'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-terminal-black text-terminal-white font-mono;
+            }
+            .terminal-input {
+                @apply bg-terminal-black border border-terminal-green text-terminal-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-terminal-green;
+            }
+            .terminal-button {
+                @apply bg-terminal-green text-terminal-black px-4 py-2 rounded hover:bg-opacity-90 transition-all duration-200;
+            }
+            .terminal-link {
+                @apply text-terminal-purple hover:text-terminal-green transition-colors duration-200;
+            }
+            .terminal-header {
+                @apply text-terminal-green font-bold;
+            }
+            .terminal-error {
+                @apply text-terminal-red;
+            }
+            .terminal-success {
+                @apply text-terminal-green;
+            }
+            .terminal-warning {
+                @apply text-terminal-yellow;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="min-h-screen">
+    <header class="border-b border-terminal-green">
+        <nav class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <a href="{% url 'home' %}" class="text-terminal-green text-xl font-bold">[Linux Fest]</a>
+                <div class="space-x-4">
+                    {% if user.is_authenticated %}
+                        {% if user.is_staff %}
+                            <a href="{% url 'admin:index' %}" class="terminal-link">Admin</a>
+                            <a href="{% url 'dashboard:index' %}" class="terminal-link">Dashboard</a>
+                        {% endif %}
+                        <a href="" class="terminal-link">Logout</a>
+                    {% else %}
+                        <a href="" class="terminal-link">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        {% if messages %}
+            <div class="mb-8">
+                {% for message in messages %}
+                    <div class="p-4 rounded {% if message.tags == 'error' %}terminal-error{% elif message.tags == 'success' %}terminal-success{% elif message.tags == 'warning' %}terminal-warning{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="border-t border-terminal-green mt-auto">
+        <div class="container mx-auto px-4 py-3 text-center text-terminal-green">
+            <p>Copyright {% now "Y" %} Linux Fest. All rights reserved.</p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
