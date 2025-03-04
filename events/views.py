@@ -58,6 +58,11 @@ def event_registration(request, event_id):
                         elif field.label.lower() == "email":
                             email = value
 
+                if email:
+                    existing_registration = Registration.objects.filter(email=email, event=event).first()
+                    if existing_registration:
+                        raise ValidationError('A registration already exists with this email address.')
+
                 # Create registration
                 registration = Registration.objects.create(
                     event=event,

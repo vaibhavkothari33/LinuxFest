@@ -25,6 +25,14 @@
             <div class="bg-terminal-black  p-6 rounded-lg">
                 <h2 class="text-xl font-bold text-terminal-green mb-6">[Registration Form]</h2>
                 
+                {% if form.non_field_errors %}
+                    <div class="mb-6 p-4 border border-terminal-red rounded-lg">
+                        {% for error in form.non_field_errors %}
+                            <p class="text-terminal-red text-sm">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
                 <form method="post" action="{% url 'events:register' event.id %}" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="space-y-6">
@@ -42,19 +50,13 @@
                                         <span class="text-terminal-red required-indicator" id="required_indicator_{{ field.name }}">*</span>
                                     {% endif %}
                                 </label>
-                                {% with input_classes='terminal-input w-full' %}
-                                  {% if field.field.widget.attrs.class %}
-                                    {% with input_classes=input_classes|add:" "|add:field.field.widget.attrs.class %}
-                                      {% render_field field class=input_classes placeholder=field.help_text %}
-                                    {% endwith %}
-                                  {% else %}
-                                    {% render_field field class=input_classes placeholder=field.help_text %}
-                                  {% endif %}
+                                {% with classes="terminal-input w-full" %}
+                                    {% render_field field class=classes placeholder=field.help_text %}
                                 {% endwith %}
                                 {% if field.errors %}
                                     <div class="terminal-error mt-1">
                                         {% for error in field.errors %}
-                                            <p class="text-sm">{{ error }}</p>
+                                            <p class="text-sm text-terminal-red">{{ error }}</p>
                                         {% endfor %}
                                     </div>
                                 {% endif %}
@@ -86,6 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Get all conditional fields
     const conditionalFields = document.querySelectorAll('[data-conditional-field]');
+    const allFields = form.querySelectorAll('input, select, textarea');
     
     // Function to check and update conditional field visibility
     function updateConditionalFields(controllingField) {
@@ -97,20 +100,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 const requiredValue = container.dataset.conditionalValue;
                 const originallyRequired = container.dataset.originallyRequired === 'true';
                 const field = container.querySelector('input, select, textarea');
+                const requiredIndicator = container.querySelector('.required-indicator');
                 
                 if (controllingValue === requiredValue) {
                     // Show field
                     container.style.display = 'block';
                     if (originallyRequired) {
                         field.required = true;
-                        field.setAttribute('required', 'required');
+                        if (requiredIndicator) {
+                            requiredIndicator.style.display = 'inline';
+                        }
                     }
                 } else {
                     // Hide field
                     container.style.display = 'none';
                     field.required = false;
-                    field.removeAttribute('required');
                     field.value = '';  // Clear the field value
+                    if (requiredIndicator) {
+                        requiredIndicator.style.display = 'none';
+                    }
                     
                     // Clear any validation messages
                     const errorDiv = container.querySelector('.terminal-error');
@@ -122,13 +130,41 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Set up event listeners for all form fields that might control other fields
-    form.querySelectorAll('input, select, textarea').forEach(field => {
+    // Set up event listeners for all form fields
+    allFields.forEach(field => {
         field.addEventListener('change', function() {
             updateConditionalFields(this);
         });
         // Initial check for pre-filled values
         updateConditionalFields(field);
+    });
+
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Check each visible required field
+        form.querySelectorAll('.form-field').forEach(container => {
+            if (container.style.display !== 'none') {
+                const field = container.querySelector('input, select, textarea');
+                const originallyRequired = container.dataset.originallyRequired === 'true';
+                
+                if (originallyRequired && !field.value) {
+                    isValid = false;
+                    // Add error message if not exists
+                    if (!container.querySelector('.terminal-error')) {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'terminal-error mt-1';
+                        errorDiv.innerHTML = '<p class="text-sm text-terminal-red">This field is required.</p>';
+                        container.appendChild(errorDiv);
+                    }
+                }
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+        }
     });
 });
 </script>

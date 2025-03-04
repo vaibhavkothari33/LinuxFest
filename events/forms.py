@@ -41,16 +41,18 @@ class DynamicRegistrationForm(forms.Form):
             else:
                 form_field = forms.CharField(**field_kwargs)  # Default to CharField
 
-            # Store the field instance on the form field for template access
+            # Store the field instance and conditional info
+            form_field.field_instance = field
             form_field.conditional_field = field.conditional_field
             form_field.conditional_value = field.conditional_value
+            form_field.originally_required = field.required
             
             # Store conditional relationships for validation
             if field.conditional_field:
                 self.conditional_field_map[f'field_{field.id}'] = {
                     'controlling_field': f'field_{field.conditional_field.id}',
                     'required_value': field.conditional_value,
-                    'originally_required': field.required  # Store original required state
+                    'originally_required': field.required
                 }
 
             self.fields[f'field_{field.id}'] = form_field
@@ -61,40 +63,36 @@ class DynamicRegistrationForm(forms.Form):
             return False
 
         condition = self.conditional_field_map[field_name]
-        controlling_value = data.get(condition['controlling_field'])
+        controlling_field = condition['controlling_field']
+        required_value = condition['required_value']
+        controlling_value = data.get(controlling_field, '')
         
-        # If controlling field is empty or doesn't match required value, field should be hidden
-        return not controlling_value or controlling_value != condition['required_value']
+        # Field should be shown if controlling field matches required value
+        return controlling_value != required_value
 
     def clean(self):
-        """Custom clean method to handle conditional validation"""
-        cleaned_data = super().clean()  # Get the parent's cleaned data
+        cleaned_data = super().clean()
         
-        if not cleaned_data:  # If parent validation failed, return empty dict
-            return {}
-
-        # Get visible fields data
-        visible_data = {}
-        for field_name, value in self.data.items():
-            if not (field_name in self.fields and self._should_field_be_hidden(field_name, self.data)):
-                visible_data[field_name] = value
-
-        # Remove data for hidden fields
-        for field_name in list(cleaned_data.keys()):
-            if self._should_field_be_hidden(field_name, visible_data):
-                del cleaned_data[field_name]
-                # Also remove any validation errors for hidden fields
-                if field_name in self._errors:
-                    del self._errors[field_name]
+        # Get a copy of the submitted data for condition checking
+        data = self.data.copy() if hasattr(self, 'data') else {}
         
-        return cleaned_data  # Return the cleaned data explicitly
-
-    def is_valid(self):
-        """Override is_valid to handle conditional fields"""
-        is_valid = super().is_valid()
+        # Check each field for conditional validation
+        for field_name, field in self.fields.items():
+            # If field has conditions
+            if hasattr(field, 'conditional_field') and field.conditional_field:
+                controlling_field_name = f'field_{field.conditional_field.id}'
+                controlling_value = data.get(controlling_field_name)
+                
+                # If controlling field matches the condition
+                if controlling_value == field.conditional_value:
+                    # Field should be visible and validated
+                    if field.originally_required and not cleaned_data.get(field_name):
+                        self.add_error(field_name, 'This field is required.')
+                else:
+                    # Field should be hidden and not validated
+                    if field_name in cleaned_data:
+                        del cleaned_data[field_name]
+                        if field_name in self._errors:
+                            del self._errors[field_name]
         
-        # If form is not valid, ensure we still have cleaned_data
-        if not is_valid:
-            self.cleaned_data = self.clean()
-        
-        return is_valid
+        return cleaned_data
