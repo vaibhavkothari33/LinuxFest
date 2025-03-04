@@ -39,65 +39,64 @@ def event_registration(request, event_id):
     
     if request.method == 'POST':
         form = DynamicRegistrationForm(request.POST, request.FILES, event=event)
-        if form.is_valid():
-            try:
-                with transaction.atomic():
-                    # Get all form fields for this event
-                    event_fields = {
-                        f'field_{field.id}': field 
-                        for field in event.form_fields.all()
-                    }
-                    
-                    # Get name and email directly from form data
-                    name = None
-                    email = None
-                    for field_name, value in request.POST.items():
-                        if field_name in event_fields:
-                            field = event_fields[field_name]
-                            if field.label.lower() == "full name":
-                                name = value
-                            elif field.label.lower() == "email":
-                                email = value
+        try:
+            with transaction.atomic():
+                # Get all form fields for this event
+                event_fields = {
+                    f'field_{field.id}': field 
+                    for field in event.form_fields.all()
+                }
+                
+                # Get name and email directly from form data
+                name = None
+                email = None
+                for field_name, value in request.POST.items():
+                    if field_name in event_fields:
+                        field = event_fields[field_name]
+                        if field.label.lower() == "full name":
+                            name = value
+                        elif field.label.lower() == "email":
+                            email = value
 
-                    # Create registration
-                    registration = Registration.objects.create(
-                        event=event,
-                        status='pending',
-                        name=name or "Unknown",
-                        email=email or "unknown@example.com"
-                    )
-                    
-                    # Process form fields
-                    for field_name, value in request.POST.items():
-                        if field_name in event_fields:
-                            field = event_fields[field_name]
-                            
-                            # Skip fields that should be hidden based on conditions
-                            if form._should_field_be_hidden(field_name, request.POST):
-                                continue
-                            
-                            # Handle file uploads separately
-                            if field.field_type == 'file' and field_name in request.FILES:
-                                FormResponse.objects.create(
-                                    registration=registration,
-                                    field=field,
-                                    file=request.FILES[field_name]
-                                )
-                            elif value:  # Only save non-empty values
-                                FormResponse.objects.create(
-                                    registration=registration,
-                                    field=field,
-                                    value=str(value)
-                                )
-                    
-                    messages.success(request, 'Registration submitted successfully! Please check your email for confirmation.')
-                    return redirect('registrations:confirmation', registration_id=registration.id)
-                    
-            except ValidationError as e:
-                messages.error(request, str(e))
-            except Exception as e:
-                messages.error(request, 'An error occurred during registration. Please try again.')
-                print(e)
+                # Create registration
+                registration = Registration.objects.create(
+                    event=event,
+                    status='pending',
+                    name=name or "Unknown",
+                    email=email or "unknown@example.com"
+                )
+                
+                # Process form fields
+                for field_name, value in request.POST.items():
+                    if field_name in event_fields:
+                        field = event_fields[field_name]
+                        
+                        # Skip fields that should be hidden based on conditions
+                        if form._should_field_be_hidden(field_name, request.POST):
+                            continue
+                        
+                        # Handle file uploads separately
+                        if field.field_type == 'file' and field_name in request.FILES:
+                            FormResponse.objects.create(
+                                registration=registration,
+                                field=field,
+                                file=request.FILES[field_name]
+                            )
+                        elif value:  # Only save non-empty values
+                            FormResponse.objects.create(
+                                registration=registration,
+                                field=field,
+                                value=str(value)
+                            )
+                
+                messages.success(request, 'Application submitted successfully!')
+                return redirect('registrations:confirmation', registration_id=registration.id)
+                
+        except ValidationError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            messages.error(request, 'An error occurred during registration. Please try again.')
+            print(e)
     else:
         form = DynamicRegistrationForm(event=event)
     

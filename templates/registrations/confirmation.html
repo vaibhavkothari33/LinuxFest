@@ -5,12 +5,15 @@
 {% block content %}
 <div class="max-w-2xl mx-auto">
     <div class="bg-terminal-black border border-terminal-green p-8 rounded-lg text-center">
-        <h1 class="text-2xl font-bold text-terminal-green mb-4">[Registration Confirmed]</h1>
+        <h1 class="text-2xl font-bold text-terminal-green mb-4">[Registration Pending]</h1>
         <p class="text-terminal-white mb-6">
-            Your registration for Linux Fest has been submitted successfully!
+            Thank you for registering for the event. Your registration is pending confirmation.
+        </p>
+        <p class="text-terminal-white my-4 underline">
+            <span class="font-bold">NOTE:</span> Filling the registration form does not guarantee your entry in the event.
         </p>
         <p class="text-terminal-purple">
-            > Please check your email for a confirmation message and your QR code ticket.
+            > You will receive an email with the confirmation details if your registration is approved.
         </p>
         <div class="mt-8">
             <a href="{% url 'home' %}" class="terminal-button">
