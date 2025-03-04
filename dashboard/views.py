@@ -9,10 +9,7 @@ from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
-import qrcode
 import json
-from io import BytesIO
-import base64
 
 def is_staff_check(user):
     return user.is_staff
@@ -214,26 +211,9 @@ def reject_registration(request, registration_id):
 def send_approval_email(request, registration_id):
     registration = get_object_or_404(Registration, id=registration_id, status='approved')
     
-    # Generate QR code
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=10,
-        border=4,
-    )
-    qr.add_data(str(registration.uuid))
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    
-    # Convert QR code to base64
-    buffer = BytesIO()
-    img.save(buffer, format='PNG')
-    qr_code_base64 = base64.b64encode(buffer.getvalue()).decode()
-
     context = {
         'registration': registration,
-        'event': registration.event,
-        'qr_code_base64': qr_code_base64
+        'event': registration.event
     }
     
     email_body = render_to_string('emails/registration_approved.html', context)

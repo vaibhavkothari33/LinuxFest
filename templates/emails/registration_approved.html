@@ -52,7 +52,7 @@
     <p>Here is your QR code ticket for check-in:</p>
     
     <div class="qr-code">
-        <img src="data:image/png;base64,{{ qr_code_base64 }}" 
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ registration.uuid }}" 
              alt="QR Code Ticket" 
              width="200" 
              height="200">
