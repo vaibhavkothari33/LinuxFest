@@ -1,41 +1,44 @@
 {% extends "base.html" %}
-{% load i18n %}
 
-{% block title %}{{ event.name }} - Registrations | Linux Fest{% endblock %}
+{% block title %}Event Registrations - {{ event.name }} | Linux Fest Admin{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
     <div class="mb-8">
-        <h1 class="text-2xl font-bold text-terminal-green mb-2">[{{ event.name }} - Registrations]</h1>
-        <p class="text-terminal-purple">
-            > Event Date: {{ event.date }} @ {{ event.time|time:"H:i" }}_
-        </p>
+        <h1 class="text-2xl font-bold text-terminal-green">[Registrations - {{ event.name }}]</h1>
     </div>
 
-    <!-- Registration Stats -->
+    <!-- Stats -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg">
-            <h3 class="text-terminal-purple mb-2">Total</h3>
-            <p class="text-3xl text-terminal-green font-mono">{{ stats.total }}</p>
+        <div class="bg-terminal-black border border-terminal-green p-4 rounded-lg">
+            <h3 class="text-terminal-purple text-sm mb-1">Total Registrations</h3>
+            <p class="text-2xl text-terminal-white">{{ stats.total }}</p>
         </div>
-        <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg">
-            <h3 class="text-terminal-purple mb-2">Pending</h3>
-            <p class="text-3xl text-terminal-yellow font-mono">{{ stats.pending }}</p>
+        <div class="bg-terminal-black border border-terminal-green p-4 rounded-lg">
+            <h3 class="text-terminal-purple text-sm mb-1">Pending</h3>
+            <p class="text-2xl text-terminal-yellow">{{ stats.pending }}</p>
         </div>
-        <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg">
-            <h3 class="text-terminal-purple mb-2">Approved</h3>
-            <p class="text-3xl text-terminal-green font-mono">{{ stats.approved }}</p>
+        <div class="bg-terminal-black border border-terminal-green p-4 rounded-lg">
+            <h3 class="text-terminal-purple text-sm mb-1">Approved</h3>
+            <p class="text-2xl text-terminal-green">{{ stats.approved }}</p>
         </div>
-        <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg">
-            <h3 class="text-terminal-purple mb-2">Rejected</h3>
-            <p class="text-3xl text-terminal-red font-mono">{{ stats.rejected }}</p>
+        <div class="bg-terminal-black border border-terminal-green p-4 rounded-lg">
+            <h3 class="text-terminal-purple text-sm mb-1">Rejected</h3>
+            <p class="text-2xl text-terminal-red">{{ stats.rejected }}</p>
         </div>
     </div>
 
     <!-- Registration List -->
-    <div class="bg-terminal-black border border-terminal-green rounded-lg overflow-hidden">
+    <div class="bg-terminal-black border border-terminal-green rounded-lg">
         <div class="p-6">
-            <h2 class="text-xl font-bold text-terminal-green mb-6">[Registration List]</h2>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-terminal-green">
+                    [Registration List]
+                </h2>
+                <a href="{% url 'dashboard:event_list' %}" class="terminal-button bg-terminal-black">
+                    < Back to Events
+                </a>
+            </div>
             
             {% if registrations %}
                 <div class="overflow-x-auto">
@@ -54,7 +57,7 @@
                             {% for registration in registrations %}
                                 <tr class="border-b border-terminal-green last:border-0">
                                     <td class="px-4 py-3 text-terminal-white">{{ registration.id }}</td>
-                                    <td class="px-4 py-3 text-terminal-white">{{ registration.full_name }}</td>
+                                    <td class="px-4 py-3 text-terminal-white">{{ registration.name }}</td>
                                     <td class="px-4 py-3 text-terminal-white">{{ registration.email }}</td>
                                     <td class="px-4 py-3 text-terminal-white">{{ registration.registration_date|date:"Y-m-d" }}</td>
                                     <td class="px-4 py-3">
@@ -69,18 +72,8 @@
                                         <div class="flex space-x-2">
                                             <a href="{% url 'dashboard:registration_detail' registration.id %}" 
                                                class="terminal-link text-sm">
-                                                View
+                                                View >
                                             </a>
-                                            {% if registration.status == 'pending' %}
-                                                <form method="post" action="{% url 'dashboard:approve_registration' registration.id %}" class="inline">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="terminal-link text-sm">Approve</button>
-                                                </form>
-                                                <form method="post" action="{% url 'dashboard:reject_registration' registration.id %}" class="inline">
-                                                    {% csrf_token %}
-                                                    <button type="submit" class="terminal-link text-sm">Reject</button>
-                                                </form>
-                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>
@@ -90,34 +83,10 @@
                 </div>
             {% else %}
                 <p class="text-terminal-purple text-center py-8">
-                    No registrations found for this event_
+                    No registrations found.
                 </p>
             {% endif %}
         </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="mt-8 flex justify-between">
-        <a href="{% url 'dashboard:event_list' %}" class="terminal-button">
-            < Back to Events
-        </a>
-        {% if event.registration_open %}
-            <form method="post" action="{% url 'dashboard:event_edit' event.id %}" class="inline">
-                {% csrf_token %}
-                <input type="hidden" name="registration_open" value="off">
-                <button type="submit" class="terminal-button bg-terminal-red">
-                    Close Registrations
-                </button>
-            </form>
-        {% else %}
-            <form method="post" action="{% url 'dashboard:event_edit' event.id %}" class="inline">
-                {% csrf_token %}
-                <input type="hidden" name="registration_open" value="on">
-                <button type="submit" class="terminal-button">
-                    Open Registrations
-                </button>
-            </form>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

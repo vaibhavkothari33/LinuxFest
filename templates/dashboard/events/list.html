@@ -1,79 +1,57 @@
 {% extends "base.html" %}
-{% load i18n %}
 
 {% block title %}Events | Linux Fest Admin{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
-    <div class="flex justify-between items-center mb-8">
+    <div class="mb-8 flex justify-between items-center">
         <h1 class="text-2xl font-bold text-terminal-green">[Event Management]</h1>
         <a href="{% url 'dashboard:event_create' %}" class="terminal-button">
-            Create Event >
+            Create New Event >
         </a>
     </div>
 
-    <div class="bg-terminal-black border border-terminal-green rounded-lg overflow-hidden">
-        {% if events %}
-            <div class="overflow-x-auto">
+    {% if events %}
+        <div class="bg-terminal-black border border-terminal-green rounded-lg overflow-hidden">
+            <div class="p-6">
                 <table class="w-full">
                     <thead>
                         <tr class="text-left border-b border-terminal-green">
-                            <th class="px-6 py-3 text-terminal-purple">Event Name</th>
-                            <th class="px-6 py-3 text-terminal-purple">Date & Time</th>
-                            <th class="px-6 py-3 text-terminal-purple">Location</th>
-                            <th class="px-6 py-3 text-terminal-purple">Registrations</th>
-                            <th class="px-6 py-3 text-terminal-purple">Status</th>
-                            <th class="px-6 py-3 text-terminal-purple">Actions</th>
+                            <th class="px-4 py-2 text-terminal-purple">Name</th>
+                            <th class="px-4 py-2 text-terminal-purple">Date</th>
+                            <th class="px-4 py-2 text-terminal-purple">Location</th>
+                            <th class="px-4 py-2 text-terminal-purple">Status</th>
+                            <th class="px-4 py-2 text-terminal-purple">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for event in events %}
                             <tr class="border-b border-terminal-green last:border-0">
-                                <td class="px-6 py-4">
-                                    <div class="text-terminal-white font-bold">{{ event.name }}</div>
-                                    <div class="text-sm text-terminal-purple">ID: {{ event.id }}</div>
+                                <td class="px-4 py-3 text-terminal-white">{{ event.name }}</td>
+                                <td class="px-4 py-3 text-terminal-white">{{ event.date }}</td>
+                                <td class="px-4 py-3 text-terminal-white">{{ event.location }}</td>
+                                <td class="px-4 py-3">
+                                    {% if event.registration_open %}
+                                        <span class="px-2 py-1 text-xs bg-terminal-green text-terminal-black rounded">
+                                            Open
+                                        </span>
+                                    {% else %}
+                                        <span class="px-2 py-1 text-xs bg-terminal-red text-terminal-white rounded">
+                                            Closed
+                                        </span>
+                                    {% endif %}
                                 </td>
-                                <td class="px-6 py-4 text-terminal-white">
-                                    {{ event.date }}<br>
-                                    <span class="text-terminal-purple">{{ event.time|time:"H:i" }}</span>
-                                </td>
-                                <td class="px-6 py-4 text-terminal-white">
-                                    {{ event.location }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-terminal-white">
-                                        {{ event.registration_set.count }}/{{ event.max_attendees }}
-                                    </div>
-                                    <div class="text-sm text-terminal-purple">
-                                        {{ event.get_available_slots }} slots available
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="px-2 py-1 text-xs rounded
-                                        {% if event.registration_open %}
-                                            bg-terminal-green text-terminal-black
-                                        {% else %}
-                                            bg-terminal-red text-terminal-white
-                                        {% endif %}">
-                                        {{ event.registration_open|yesno:"Open,Closed" }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
+                                <td class="px-4 py-3">
                                     <div class="flex space-x-4">
-                                        <a href="{% url 'dashboard:event_edit' event.id %}" 
-                                           class="terminal-link">Edit</a>
-                                        <a href="{% url 'dashboard:form_builder' event.id %}"
-                                           class="terminal-link">Form</a>
-                                        <a href="{% url 'dashboard:event_registrations' event.id %}"
-                                           class="terminal-link">Registrations</a>
-                                        <form method="post" action="{% url 'dashboard:event_delete' event.id %}" 
-                                              class="inline" 
-                                              onsubmit="return confirm('Are you sure you want to delete this event?');">
-                                            {% csrf_token %}
-                                            <button type="submit" class="terminal-link text-terminal-red">
-                                                Delete
-                                            </button>
-                                        </form>
+                                        <a href="{% url 'dashboard:event_edit' event.id %}" class="terminal-link">
+                                            Edit >
+                                        </a>
+                                        <a href="{% url 'dashboard:form_builder' event.id %}" class="terminal-link">
+                                            Form Builder >
+                                        </a>
+                                        <a href="{% url 'dashboard:event_registrations' event.id %}" class="terminal-link">
+                                            Registrations >
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -81,14 +59,11 @@
                     </tbody>
                 </table>
             </div>
-        {% else %}
-            <div class="p-8 text-center">
-                <p class="text-terminal-purple">No events created yet_</p>
-                <p class="mt-2 text-sm text-terminal-white">
-                    Click the "Create Event" button to add your first event
-                </p>
-            </div>
-        {% endif %}
-    </div>
+        </div>
+    {% else %}
+        <div class="bg-terminal-black border border-terminal-green p-8 rounded-lg text-center">
+            <p class="text-terminal-purple">No events found.</p>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
