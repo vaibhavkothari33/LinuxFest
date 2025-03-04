@@ -12,6 +12,13 @@ urlpatterns = [
     path('events/create/', views.event_create, name='event_create'),
     path('events/<int:event_id>/edit/', views.event_edit, name='event_edit'),
     path('events/<int:event_id>/registrations/', views.event_registrations, name='event_registrations'),
+    path('events/<int:event_id>/form-builder/', views.form_builder, name='form_builder'),
+    path('events/<int:event_id>/form-builder/reorder/', views.reorder_fields, name='reorder_fields'),
+    
+    # Form field management
+    path('fields/create/<int:event_id>/', views.form_field_create, name='field_create'),
+    path('fields/<int:field_id>/edit/', views.form_field_edit, name='field_edit'),
+    path('fields/<int:field_id>/delete/', views.form_field_delete, name='field_delete'),
     
     # Registration management
     path('registrations/', views.registration_list, name='registration_list'),

@@ -8,7 +8,7 @@
     <div class="bg-terminal-black border border-terminal-green p-8 rounded-lg">
         <h1 class="text-2xl font-bold text-terminal-green mb-4">[{{ event.name }}]</h1>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 hidden">
             <div>
                 <p class="text-terminal-purple">$ date --event</p>
                 <p class="ml-4 text-terminal-white">
@@ -21,13 +21,8 @@
             </div>
         </div>
 
-        <div class="mb-8">
-            <p class="text-terminal-purple">$ cat description.txt</p>
-            <p class="ml-4 text-terminal-white">{{ event.description }}</p>
-        </div>
-
         {% if event.registration_open %}
-            <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg">
+            <div class="bg-terminal-black  p-6 rounded-lg">
                 <h2 class="text-xl font-bold text-terminal-green mb-6">[Registration Form]</h2>
                 
                 <form method="post" action="{% url 'events:register' event.id %}" enctype="multipart/form-data">

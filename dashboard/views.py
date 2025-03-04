@@ -4,17 +4,15 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from events.models import Event, FormField
 from registrations.models import Registration
-from .models import CheckInVolunteer, EventNotification, DashboardSetting
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.db.models import Count
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.conf import settings
-import json
 import qrcode
-import base64
+import json
 from io import BytesIO
+import base64
 
 def is_staff_check(user):
     return user.is_staff
@@ -24,13 +22,11 @@ def dashboard_home(request):
     events = Event.objects.all().order_by('-date')[:5]
     registrations = Registration.objects.select_related('event').order_by('-registration_date')[:10]
     pending_registrations = Registration.objects.filter(status='pending').count()
-    active_volunteers = CheckInVolunteer.objects.filter(is_active=True).count()
 
     return render(request, 'dashboard/index.html', {
         'events': events,
         'registrations': registrations,
         'pending_registrations': pending_registrations,
-        'active_volunteers': active_volunteers,
     })
 
 @user_passes_test(is_staff_check)
@@ -93,6 +89,94 @@ def event_edit(request, event_id):
     return render(request, 'dashboard/events/edit.html', {'event': event})
 
 @user_passes_test(is_staff_check)
+def form_builder(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    fields = event.form_fields.all().order_by('order')
+    return render(request, 'dashboard/events/form_builder.html', {
+        'event': event,
+        'fields': fields,
+    })
+
+@user_passes_test(is_staff_check)
+def form_field_create(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    if request.method == 'POST':
+        try:
+            conditional_field_id = request.POST.get('conditional_field')
+            conditional_field = None
+            if conditional_field_id:
+                conditional_field = FormField.objects.get(id=conditional_field_id)
+
+            field = FormField.objects.create(
+                event=event,
+                label=request.POST.get('label'),
+                field_type=request.POST.get('field_type'),
+                required=request.POST.get('required') == 'on',
+                placeholder=request.POST.get('placeholder', ''),
+                choices=request.POST.get('choices', ''),
+                order=FormField.objects.filter(event=event).count(),
+                conditional_field=conditional_field,
+                conditional_value=request.POST.get('conditional_value', '')
+            )
+            messages.success(request, 'Form field added successfully')
+            return redirect('dashboard:form_builder', event_id=event.id)
+        except Exception as e:
+            messages.error(request, f'Error creating form field: {str(e)}')
+    return render(request, 'dashboard/fields/create.html', {
+        'event': event,
+        'field_types': FormField.FIELD_TYPES,
+        'existing_fields': event.form_fields.all()
+    })
+
+@user_passes_test(is_staff_check)
+def form_field_edit(request, field_id):
+    field = get_object_or_404(FormField, id=field_id)
+    if request.method == 'POST':
+        try:
+            conditional_field_id = request.POST.get('conditional_field')
+            conditional_field = None
+            if conditional_field_id:
+                conditional_field = FormField.objects.get(id=conditional_field_id)
+            
+            field.label = request.POST.get('label')
+            field.field_type = request.POST.get('field_type')
+            field.required = request.POST.get('required') == 'on'
+            field.placeholder = request.POST.get('placeholder', '')
+            field.choices = request.POST.get('choices', '')
+            field.conditional_field = conditional_field
+            field.conditional_value = request.POST.get('conditional_value', '')
+            field.save()
+            messages.success(request, 'Form field updated successfully')
+            return redirect('dashboard:form_builder', event_id=field.event.id)
+        except Exception as e:
+            messages.error(request, f'Error updating form field: {str(e)}')
+    return render(request, 'dashboard/fields/edit.html', {
+        'field': field,
+        'field_types': FormField.FIELD_TYPES,
+        'existing_fields': field.event.form_fields.exclude(id=field.id)
+    })
+
+@user_passes_test(is_staff_check)
+def form_field_delete(request, field_id):
+    field = get_object_or_404(FormField, id=field_id)
+    event_id = field.event.id
+    if request.method == 'POST':
+        field.delete()
+        messages.success(request, 'Form field deleted successfully')
+    return redirect('dashboard:form_builder', event_id=event_id)
+
+@require_POST
+@user_passes_test(is_staff_check)
+def reorder_fields(request, event_id):
+    try:
+        data = json.loads(request.body)
+        for idx, field_id in enumerate(data.get('order', [])):
+            FormField.objects.filter(id=field_id).update(order=idx)
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@user_passes_test(is_staff_check)
 def registration_list(request):
     registrations = Registration.objects.all().select_related('event').order_by('-registration_date')
     return render(request, 'dashboard/registrations/list.html', {
@@ -130,7 +214,7 @@ def reject_registration(request, registration_id):
 def send_approval_email(request, registration_id):
     registration = get_object_or_404(Registration, id=registration_id, status='approved')
     
-    # Generate QR code with UUID
+    # Generate QR code
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
