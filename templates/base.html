@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Linux Fest - A premier open source and Linux technology meetup featuring workshops, talks, and networking opportunities">
-    <meta name="keywords" content="Linux, Open Source, Programming, Developer Conference, Linux Community">
-    <title>{% block title %}Linux Fest{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/terminal-animations.css' %}">
-    <script>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description"
+              content="Linux Fest - A premier open source and Linux technology meetup featuring workshops, talks, and networking opportunities">
+        <meta name="keywords"
+              content="Linux, Open Source, Programming, Developer Conference, Linux Community">
+        <title>
+            {% block title %}Linux Fest{% endblock %}
+        </title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'css/terminal-animations.css' %}">
+        <script>
         tailwind.config = {
             theme: {
                 extend: {
@@ -29,8 +33,8 @@
                 }
             }
         }
-    </script>
-    <style type="text/tailwindcss">
+        </script>
+        <style type="text/tailwindcss">
         @layer base {
             body {
                 @apply bg-terminal-black text-terminal-white font-mono;
@@ -57,8 +61,8 @@
                 @apply text-terminal-yellow;
             }
         }
-    </style>
-    <style>
+        </style>
+        <style>
         @view-transition {
             navigation: auto;
         }
@@ -71,8 +75,9 @@
             top: 0;
             left: 0;
             transform-style: preserve-3d;
-            perspective: 100rem;
-            animation: rotate 100s linear infinite forwards;
+            perspective: 30rem;
+            animation: rotate 200s linear infinite forwards; /* Slowed down from 100s */
+            will-change: transform;
             
             .plane {
                 --dir: 1;
@@ -157,57 +162,72 @@
                 visibility: hidden;
             }
         }
-    </style>
-    {% block extra_css %}{% endblock %}
-</head>
-<body class="min-h-screen bg-terminal-black">
-    <header class="border-b border-terminal-green terminal-fade-in backdrop-blur-md">
-        <nav class="container mx-auto px-4 py-3">
-            <div class="flex justify-between items-center">
-                <a href="{% url 'home' %}" class="text-terminal-green text-xl font-bold terminal-input-effect">[Linux Fest]</a>
-                <div class="space-x-4">
-                    {% if user.is_authenticated %}
-                        {% if user.is_staff %}
-                            <a href="{% url 'admin:index' %}" class="terminal-link terminal-link-hover terminal-command">Admin</a>
-                            <a href="{% url 'dashboard:index' %}" class="terminal-link terminal-link-hover terminal-command">Dashboard</a>
+
+        @media (max-width: 768px) {
+            .grid-container {
+                --grid: 5rem; /* Smaller grid */
+                perspective: 20rem; /* Lower perspective on mobile */
+                animation: rotate 10s linear infinite forwards; /* Slower animation on mobile */
+                opacity: 0.6; /* Slightly transparent */
+            }
+            .grid-container .plane:last-child {
+                display: none; /* Hide second plane */
+            }
+            .plane {
+                transform: none;
+                animation: none; /* Disable heavy 3D on mobile */
+            }
+        }
+        </style>
+        {% block extra_css %}{% endblock %}
+    </head>
+    <body class="min-h-screen bg-terminal-black">
+        <header class="border-b border-terminal-green terminal-fade-in backdrop-blur-md">
+            <nav class="container mx-auto px-4 py-3">
+                <div class="flex justify-between items-center">
+                    <a href="{% url 'home' %}"
+                       class="text-terminal-green text-xl font-bold terminal-input-effect">[Linux Fest]</a>
+                    <div class="space-x-4">
+                        {% if user.is_authenticated %}
+                            {% if user.is_staff %}
+                                <a href="{% url 'admin:index' %}"
+                                   class="terminal-link terminal-link-hover terminal-command">Admin</a>
+                                <a href="{% url 'dashboard:index' %}"
+                                   class="terminal-link terminal-link-hover terminal-command">Dashboard</a>
+                            {% endif %}
+                            <a href="" class="terminal-link terminal-link-hover terminal-command">Logout</a>
                         {% endif %}
-                        <a href="" class="terminal-link terminal-link-hover terminal-command">Logout</a>
-                    {% endif %}
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="grid-container fixed top-0 left-0 w-full h-full -z-10">
-	<div class="plane">
-		<div class="grid"></div>
-		<div class="glow"></div>
-	</div>
-	<div class="plane">
-		<div class="grid"></div>
-		<div class="glow"></div>
-	</div>
-</div>
-
-    <main class="container mx-auto px-4 py-8 terminal-appear">
-        {% if messages %}
-            <div class="mb-8">
-                {% for message in messages %}
-                    <div class="p-4 rounded terminal-message {% if message.tags == 'error' %}terminal-error{% elif message.tags == 'success' %}terminal-success terminal-success-indicator{% elif message.tags == 'warning' %}terminal-warning{% endif %}">
-                        {{ message }}
                     </div>
-                {% endfor %}
+                </div>
+            </nav>
+        </header>
+        <div class="grid-container fixed top-0 left-0 w-full h-full -z-10">
+            <div class="plane">
+                <div class="grid"></div>
+                <div class="glow"></div>
             </div>
-        {% endif %}
-
-        {% block content %}{% endblock %}
-    </main>
-
-    <footer class="border-t border-terminal-green mt-auto backdrop-blur-md">
-        <div class="container mx-auto px-4 py-3 text-center text-terminal-green terminal-slide-in">
-            <p>FOSS Club BU</p>
+            <div class="plane">
+                <div class="grid"></div>
+                <div class="glow"></div>
+            </div>
         </div>
-    </footer>
-
-    {% block extra_js %}{% endblock %}
-</body>
+        <main class="container mx-auto px-4 py-8 terminal-appear">
+            {% if messages %}
+                <div class="mb-8">
+                    {% for message in messages %}
+                        <div class="p-4 rounded terminal-message {% if message.tags == 'error' %}terminal-error{% elif message.tags == 'success' %}terminal-success terminal-success-indicator{% elif message.tags == 'warning' %}terminal-warning{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+        <footer class="border-t border-terminal-green mt-auto backdrop-blur-md">
+            <div class="container mx-auto px-4 py-3 text-center text-terminal-green terminal-slide-in">
+                <p>FOSS Club BU</p>
+            </div>
+        </footer>
+        {% block extra_js %}{% endblock %}
+    </body>
 </html>
