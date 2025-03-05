@@ -62,11 +62,106 @@
         @view-transition {
             navigation: auto;
         }
+
+        .grid-container {
+            --grid: 10rem;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-style: preserve-3d;
+            perspective: 100rem;
+            animation: rotate 100s linear infinite forwards;
+            
+            .plane {
+                --dir: 1;
+                width: 300%;
+                height: 150%;
+                min-height: 70rem;
+                position: absolute;
+                bottom: 0;
+                transform-style: preserve-3d;
+                transform-origin: bottom center;
+                transform: translateX(-50%) rotateX(85deg);
+                
+                &:last-child {
+                    --dir: -1;
+                    top: 0;
+                    transform-origin: top center;
+                    transform: translateX(-50%) rotateX(-85deg);
+                    
+                    & > * {
+                        &::after {
+                            background-image: linear-gradient(to top, rgba(40, 42, 54, 255) var(--grid), rgba(40, 42, 54, 0));
+                        }
+                    }
+                }
+                
+                & > * {
+                    transform-style: preserve-3d;
+                    height: 100%;
+                    width: 100%;
+                    position: absolute;
+                    
+                    &::before, &::after {
+                        content: '';
+                        display: block;
+                        position: absolute;
+                        width: 100%;
+                        height: 100%;
+                        top: 0;
+                        left: 0;
+                    }
+
+                    &::before {
+                        background-image: repeating-linear-gradient(to left, green, green 4px, transparent 4px, transparent var(--grid)), 
+                            repeating-linear-gradient(to bottom, green, green 4px, transparent 4px, transparent var(--grid));
+                        animation: move 1s linear infinite forwards;
+                    }
+
+                    &::after {
+                        background-image: linear-gradient(to bottom, rgba(40, 42, 54, 255) var(--grid), rgba(40, 42, 54, 0));
+                        z-index: 1;
+                        transform: translateZ(1px);
+                    }
+                }
+                
+            }
+        }
+
+        @keyframes move {
+            from {
+                transform: translateY(0px);
+            }
+            
+            to {
+                transform: translateY(calc(var(--grid) * var(--dir)));
+            }
+        }
+
+        @keyframes blink {
+            0% {
+                visibility: visible;
+            }
+            
+            50% {
+                visibility: visible;
+            }
+            
+            51% {
+                visibility: hidden;
+            }
+            
+            100% {
+                visibility: hidden;
+            }
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
-<body class="min-h-screen">
-    <header class="border-b border-terminal-green terminal-fade-in">
+<body class="min-h-screen bg-terminal-black">
+    <header class="border-b border-terminal-green terminal-fade-in backdrop-blur-md">
         <nav class="container mx-auto px-4 py-3">
             <div class="flex justify-between items-center">
                 <a href="{% url 'home' %}" class="text-terminal-green text-xl font-bold terminal-input-effect">[Linux Fest]</a>
@@ -82,6 +177,16 @@
             </div>
         </nav>
     </header>
+    <div class="grid-container fixed top-0 left-0 w-full h-full -z-10">
+	<div class="plane">
+		<div class="grid"></div>
+		<div class="glow"></div>
+	</div>
+	<div class="plane">
+		<div class="grid"></div>
+		<div class="glow"></div>
+	</div>
+</div>
 
     <main class="container mx-auto px-4 py-8 terminal-appear">
         {% if messages %}

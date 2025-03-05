@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
-    <div class="bg-terminal-black border border-terminal-green p-8 rounded-lg">
+    <div class="backdrop-blur-md border border-terminal-green p-8 rounded-lg">
         <!-- <h1 class="text-2xl font-bold text-terminal-green mb-4">[{{ event.name }}]</h1> -->
         
         <div class="grid-cols-1 md:grid-cols-2 gap-6 mb-8 hidden">
@@ -22,7 +22,7 @@
         </div>
 
         {% if event.registration_open %}
-            <div class="bg-terminal-black  p-6 rounded-lg">
+            <div class="p-6 rounded-lg">
                 <h2 class="text-xl font-bold text-terminal-green mb-6">[Registration Form]</h2>
                 
                 {% if form.non_field_errors %}
