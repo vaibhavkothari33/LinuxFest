@@ -55,7 +55,6 @@
                                 <th class="px-4 py-2 text-terminal-purple"># ID</th>
                                 <th class="px-4 py-2 text-terminal-purple">Name</th>
                                 <th class="px-4 py-2 text-terminal-purple">Email</th>
-                                <th class="px-4 py-2 text-terminal-purple">Date</th>
                                 <th class="px-4 py-2 text-terminal-purple">Status</th>
                                 <th class="px-4 py-2 text-terminal-purple">Check-in</th>
                                 <th class="px-4 py-2 text-terminal-purple">Actions</th>
@@ -67,7 +66,6 @@
                                     <td class="px-4 py-3 text-terminal-white">{{ registration.id }}</td>
                                     <td class="px-4 py-3 text-terminal-white">{{ registration.name }}</td>
                                     <td class="px-4 py-3 text-terminal-white">{{ registration.email }}</td>
-                                    <td class="px-4 py-3 text-terminal-white">{{ registration.registration_date|date:"Y-m-d" }}</td>
                                     <td class="px-4 py-3">
                                         <span class="px-2 py-1 text-xs rounded
                                             {% if registration.status == 'approved' %}bg-terminal-green text-terminal-black
