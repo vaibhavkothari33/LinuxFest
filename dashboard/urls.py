@@ -14,6 +14,7 @@ urlpatterns = [
     path('events/<int:event_id>/registrations/', views.event_registrations, name='event_registrations'),
     path('events/<int:event_id>/form-builder/', views.form_builder, name='form_builder'),
     path('events/<int:event_id>/form-builder/reorder/', views.reorder_fields, name='reorder_fields'),
+    path('events/<int:event_id>/export/', views.export_registrations, name='export_registrations'),
     
     # Form field management
     path('fields/create/<int:event_id>/', views.form_field_create, name='field_create'),

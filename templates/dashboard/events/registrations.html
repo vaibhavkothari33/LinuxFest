@@ -35,9 +35,16 @@
                 <h2 class="text-xl font-bold text-terminal-green">
                     [Registration List]
                 </h2>
-                <a href="{% url 'dashboard:event_list' %}" class="terminal-button bg-terminal-black">
-                    < Back to Events
-                </a>
+                <div class="space-x-4">
+                    <a href="{% url 'dashboard:event_list' %}" 
+                       class="terminal-button bg-terminal-green">
+                        < Back to Events
+                    </a>
+                    <a href="{% url 'dashboard:export_registrations' event.id %}" 
+                       class="terminal-button bg-terminal-green">
+                        Export to CSV >
+                    </a>
+                </div>
             </div>
             
             {% if registrations %}
@@ -50,6 +57,7 @@
                                 <th class="px-4 py-2 text-terminal-purple">Email</th>
                                 <th class="px-4 py-2 text-terminal-purple">Date</th>
                                 <th class="px-4 py-2 text-terminal-purple">Status</th>
+                                <th class="px-4 py-2 text-terminal-purple">Check-in</th>
                                 <th class="px-4 py-2 text-terminal-purple">Actions</th>
                             </tr>
                         </thead>
@@ -67,6 +75,13 @@
                                             {% else %}bg-terminal-red text-terminal-white{% endif %}">
                                             {{ registration.status|title }}
                                         </span>
+                                    </td>
+                                    <td class="px-4 py-3 text-terminal-white">
+                                        {% if registration.check_in_time %}
+                                            <span class="text-terminal-green">✓ {{ registration.check_in_time|date:"H:i" }}</span>
+                                        {% else %}
+                                            <span class="text-terminal-purple">Not checked in</span>
+                                        {% endif %}
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="flex space-x-2">
