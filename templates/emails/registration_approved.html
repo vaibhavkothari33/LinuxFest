@@ -54,13 +54,25 @@
         <h3>Event Details:</h3>
         <ul>
             <li>Date: {{ event.date|date:"F j, Y" }}</li>
-            <li>Time: {{ event.time|time:"g:i A" }}</li>
-            <li>Location: {{ event.location }}</li>
+            <li>Time: 10:30 AM - 2.30 PM</li>
+            <li>
+                Location: <a href="https://maps.app.goo.gl/EMyLQLGrpdRaZa2o6">Bennett University, Greater Noida</a>
+            </li>
         </ul>
     </div>
-
+    <div class="details">
+        <h3>Join our Community:</h3>
+        <p>For easier communication and updates, please join our:</p>
+        <ul>
+            <li>
+                <a href="https://chat.whatsapp.com/DMQ5ddNxfSg8u2Ya8ANDEb">WhatsApp Group</a>
+            </li>
+            <li>
+                <a href="https://t.me/fossbu">Telegram Group</a>
+            </li>
+        </ul>
+    </div>
     <p>Here is your QR code ticket for check-in:</p>
-    
     <div class="qr-code">
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ registration.uuid }}" 
              alt="QR Code Ticket" 
@@ -79,10 +91,8 @@
             I won't be able to attend
         </a>
     </p>
-
     <p>We look forward to seeing you there!</p>
-
     <p>Best regards,<br>
-    The Linux Fest Team</p>
+        FOSS Club BU Team</p>
 </body>
 </html>
