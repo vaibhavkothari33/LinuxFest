@@ -4,5 +4,6 @@ from . import views
 app_name = 'registrations'
 
 urlpatterns = [
-    path('confirmation/<int:registration_id>/', views.registration_confirmation, name='confirmation'),
+    path('<uuid:registration_uuid>/rsvp/decline/', views.rsvp_decline, name='rsvp_decline'),
+    path('<int:registration_id>/confirmation/', views.confirmation, name='confirmation'),
 ]

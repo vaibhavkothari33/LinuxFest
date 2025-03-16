@@ -279,6 +279,7 @@ def send_approval_email(request, registration_id):
         subject=f"Your Registration for {registration.event.name} is Approved!",
         message=email_body,
         from_email=settings.DEFAULT_FROM_EMAIL,
+        reply_to="foss@bennett.edu.in",
         recipient_list=[registration.email],
         html_message=email_body
     )
@@ -301,6 +302,7 @@ def send_rejection_email(request, registration_id):
         subject=f"Registration Update for {registration.event.name}",
         message=email_body,
         from_email=settings.DEFAULT_FROM_EMAIL,
+        reply_to="foss@bennett.edu.in",
         recipient_list=[registration.email],
         html_message=email_body
     )

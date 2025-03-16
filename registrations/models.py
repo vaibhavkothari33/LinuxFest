@@ -1,61 +1,41 @@
 from django.db import models
-from django.conf import settings
+from django.utils import timezone
+from django.utils.crypto import get_random_string
 from events.models import Event, FormField
+from django.contrib.auth.models import User
 import uuid
 
 class Registration(models.Model):
-    STATUS_CHOICES = [
+    STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
-    ]
-    
-    # Default fields
-    name = models.CharField(max_length=255)
-    email = models.EmailField()
-    
-    # UUID for QR codes
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    
-    # Other fields
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    registration_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-
-    # Check-in fields
-    check_in_time = models.DateTimeField(null=True, blank=True)
-    checked_in_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
+        ('checked_in', 'Checked In'),
+        ('not_attending', 'Not Attending'),
     )
+
+    id = models.AutoField(primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='registrations')
+    name = models.CharField(max_length=255, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    registration_date = models.DateTimeField(default=timezone.now)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    check_in_time = models.DateTimeField(null=True, blank=True)
+    checked_in_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='checked_in_registrations')
 
     class Meta:
         ordering = ['-registration_date']
+        unique_together = ('event', 'email')
 
     def __str__(self):
         return f"{self.name} - {self.event.name} ({self.status})"
 
-    def save(self, *args, **kwargs):
-        # Update name and email from form responses if not set
-        if not self.name or not self.email:
-            for response in self.form_responses.all():
-                if response.field.label.lower() == "full name" and not self.name:
-                    self.name = response.value
-                elif response.field.label.lower() == "email" and not self.email:
-                    self.email = response.value
-        super().save(*args, **kwargs)
-
-    @property
-    def is_checked_in(self):
-        return bool(self.check_in_time)
-
 class FormResponse(models.Model):
     registration = models.ForeignKey(Registration, on_delete=models.CASCADE, related_name='form_responses')
     field = models.ForeignKey(FormField, on_delete=models.CASCADE)
-    value = models.TextField(blank=True)
+    value = models.TextField(blank=True, null=True)
     file = models.FileField(upload_to='form_responses/', blank=True, null=True)
 
     def __str__(self):
-        return f"Response for {self.field.label} in {self.registration}"
+        return f"{self.registration.name} - {self.field.label}: {self.value}"

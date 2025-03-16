@@ -33,6 +33,16 @@
             color: #2C5F2D;
             font-weight: bold;
         }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px 0;
+            font-size: 16px;
+            color: #fff;
+            background-color: #DC2626;
+            text-decoration: none;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -55,12 +65,20 @@
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ registration.uuid }}" 
              alt="QR Code Ticket" 
              width="200" 
-             height="200">
+             height="200"
+            >
     </div>
 
     <p><strong>Important:</strong> Please bring this QR code (either printed or on your phone) to the event for a smooth check-in process.</p>
 
     <p>Your Registration ID: {{ registration.uuid }}</p>
+
+    <p>If you are unable to attend, please let us know by clicking the button below:</p>
+    <p>
+        <a href="{% url 'registrations:rsvp_decline' registration.uuid %}" class="button">
+            I won't be able to attend
+        </a>
+    </p>
 
     <p>We look forward to seeing you there!</p>
 
