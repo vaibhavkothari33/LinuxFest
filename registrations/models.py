@@ -26,7 +26,6 @@ class Registration(models.Model):
 
     class Meta:
         ordering = ['-registration_date']
-        unique_together = ('event', 'email')
 
     def __str__(self):
         return f"{self.name} - {self.event.name} ({self.status})"
@@ -39,3 +38,18 @@ class FormResponse(models.Model):
 
     def __str__(self):
         return f"{self.registration.name} - {self.field.label}: {self.value}"
+
+class EmailCommunication(models.Model):
+    EMAIL_TYPE_CHOICES = (
+        ('registration_approved', 'Registration Approved'),
+        ('registration_rejected', 'Registration Rejected'),
+        ('event_update', 'Event Update'),
+    )
+
+    id = models.AutoField(primary_key=True)
+    registration = models.ForeignKey(Registration, on_delete=models.CASCADE, related_name='email_communications', null=True, blank=True)
+    email_type = models.CharField(max_length=50, choices=EMAIL_TYPE_CHOICES)
+    timestamp = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.registration.name} - {self.email_type} ({self.timestamp})"

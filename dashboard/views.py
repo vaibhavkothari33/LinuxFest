@@ -4,13 +4,13 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 import json
 import csv
 from events.models import Event, FormField
-from registrations.models import Registration
+from registrations.models import Registration, EmailCommunication
 
 def is_staff_check(user):
     return user.is_staff
@@ -241,7 +241,10 @@ def registration_list(request):
 def registration_detail(request, registration_id):
     registration = get_object_or_404(Registration, id=registration_id)
     responses = registration.form_responses.select_related('field')
+    emails = EmailCommunication.objects.filter(registration=registration)
+    print(emails)
     return render(request, 'dashboard/registrations/detail.html', {
+        'emails': emails,
         'registration': registration,
         'responses': responses,
     })
@@ -274,15 +277,33 @@ def send_approval_email(request, registration_id):
     }
     
     email_body = render_to_string('emails/registration_approved.html', context)
-    
-    send_mail(
+
+    email_message = EmailMessage(
         subject=f"Your Registration for {registration.event.name} is Approved!",
-        message=email_body,
+        body=email_body,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        reply_to="foss@bennett.edu.in",
-        recipient_list=[registration.email],
-        html_message=email_body
+        to=[registration.email],
+        reply_to=["foss@bennett.edu.in"]
     )
+    
+    email_message.content_subtype = "html"
+    email_message.send()
+
+    EmailCommunication.objects.create(
+        registration=registration,
+        email_type='registration_approved'
+    )
+
+
+
+    # send_mail(
+    #     subject=f"Your Registration for {registration.event.name} is Approved!",
+    #     message=email_body,
+    #     from_email=settings.DEFAULT_FROM_EMAIL,
+    #     reply_to="foss@bennett.edu.in",
+    #     recipient_list=[registration.email],
+    #     html_message=email_body
+    # )
     
     messages.success(request, f"Approval email with QR code sent to {registration.email}")
     return redirect('dashboard:registration_detail', registration_id=registration.id)

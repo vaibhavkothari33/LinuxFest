@@ -2,7 +2,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.http import JsonResponse
 from django.contrib import messages
 from django.views.decorators.http import require_POST
-from .models import Registration
+from .models import Registration, EmailCommunication
+from django.contrib.auth.models import User
 
 @require_POST
 def rsvp_decline(request, registration_uuid):
@@ -23,7 +24,7 @@ def rsvp_decline(request, registration_uuid):
 
 def confirmation(request, registration_id):
     """
-    Display the confirmation page for a registration.
+    Display the confirmation page for a registration and check email status.
     """
     registration = get_object_or_404(Registration, id=registration_id)
     return render(request, 'registrations/confirmation.html', {

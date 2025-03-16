@@ -73,8 +73,24 @@
     </div>
     {% endif %}
 
+    <div class="bg-terminal-black border border-terminal-green p-6 rounded-lg mt-8">
+        <h2 class="text-xl font-bold text-terminal-green mb-4">[Emails Sent]</h2>
+        <div class="space-y-4">
+            {% for email in emails %}
+                <div class="border-b border-terminal-green pb-2 last:border-0">
+                    <p class="text-terminal-purple">Type:</p>
+                    <p class="text-terminal-white">{{ email.email_type|title }}</p>
+                    <p class="text-terminal-purple">Timestamp:</p>
+                    <p class="text-terminal-white">{{ email.timestamp|date:"Y-m-d H:i" }}</p>
+                </div>
+            {% empty %}
+                <p class="text-terminal-purple">No emails have been sent for this registration.</p>
+            {% endfor %}
+        </div>
+    </div>
+
     <div class="mt-8 flex justify-between">
-        <a href="{% url 'dashboard:registration_list' %}" class="terminal-button bg-terminal-black">
+        <a href="{% url 'dashboard:registration_list' %}" class="terminal-button bg-terminal-green">
             < Back to List
         </a>
         <div>
