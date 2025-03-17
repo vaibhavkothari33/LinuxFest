@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
+import qrcode
+from io import BytesIO
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -140,3 +142,13 @@ def get_conditional_fields(request):
             return JsonResponse({'error': str(e)}, status=500)
             
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+def generate_qr(request, data):
+    """Generate and render a QR code for the given data."""
+    qr = qrcode.make(data)
+    buffer = BytesIO()
+    qr.save(buffer, format="PNG")
+    buffer.seek(0)
+    import base64
+    qr_code_url = f"data:image/png;base64,{base64.b64encode(buffer.getvalue()).decode('utf-8')}"
+    return render(request, 'events/qr_code.html', {'qr_code_url': qr_code_url})
