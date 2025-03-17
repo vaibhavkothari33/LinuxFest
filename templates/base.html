@@ -13,6 +13,7 @@
         <script src="https://cdn.tailwindcss.com"></script>
         {% load static %}
         <link rel="stylesheet" href="{% static 'css/terminal-animations.css' %}">
+        {% block extra_head %}{% endblock %}
         <script>
         tailwind.config = {
             theme: {

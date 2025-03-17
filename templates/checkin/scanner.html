@@ -4,8 +4,34 @@
 {% block title %}QR Code Scanner | Linux Fest{% endblock %}
 
 {% block extra_head %}
-<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
-<link rel="stylesheet" href="{% static 'css/checkin.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<style>
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+    
+    .modal-content {
+        position: relative;
+        margin: 10% auto;
+        max-width: 90%; /* Allow modal to be responsive */
+        max-height: 80%; /* Limit height to prevent overflow */
+        overflow: auto; /* Enable scrolling if content exceeds max height */
+        animation: modalFadeIn 0.3s;
+    }
+    
+    @keyframes modalFadeIn {
+        from {opacity: 0; transform: translateY(-20px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -21,16 +47,21 @@
         <div class="mt-4 flex justify-center space-x-4">
             <select id="cameraSelect" class="terminal-input bg-terminal-black text-terminal-green border-terminal-green"></select>
             <button id="startButton" class="terminal-button bg-terminal-green">Start Scanner</button>
-            <button id="stopButton" class="terminal-button bg-terminal-red stop-button">Stop Scanner</button>
+            <button id="stopButton" class="terminal-button bg-terminal-red stop-button hidden">Stop Scanner</button>
         </div>
     </div>
+</div>
 
-    <!-- Results Section -->
-    <div id="result" class="hidden bg-terminal-black border border-terminal-green p-4 rounded-lg">
+<!-- Modal Popup -->
+<div id="resultModal" class="modal">
+    <div class="modal-content bg-terminal-black border border-terminal-green p-4 rounded-lg mx-auto">
         <div id="resultContent"></div>
-        <div id="checkinActions" class="mt-4 flex justify-end hidden">
-            <button id="checkinButton" class="terminal-button bg-terminal-green">
-                Confirm Check-in >
+        <div id="modalActions" class="mt-6 flex justify-end">
+            <button id="confirmButton" class="terminal-button bg-terminal-green mx-2">
+                Confirm Check-in
+            </button>
+            <button id="closeModalButton" class="terminal-button bg-terminal-red mx-2">
+                Close
             </button>
         </div>
     </div>
@@ -44,13 +75,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const cameraSelect = document.getElementById('cameraSelect');
     const startButton = document.getElementById('startButton');
     const stopButton = document.getElementById('stopButton');
-    const resultDiv = document.getElementById('result');
+    const resultModal = document.getElementById('resultModal');
     const resultContent = document.getElementById('resultContent');
-    const checkinActions = document.getElementById('checkinActions');
-    const checkinButton = document.getElementById('checkinButton');
+    const confirmButton = document.getElementById('confirmButton');
+    const closeModalButton = document.getElementById('closeModalButton');
     
     let stream = null;
     let scanning = false;
+    let modalOpen = false;
     let canvasElement = document.createElement('canvas');
     let canvas = canvasElement.getContext('2d');
     let currentRegistrationId = null;
@@ -89,7 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             scan();
         } catch (error) {
             console.error('Error accessing camera:', error);
-            alert('Error accessing camera. Please ensure you have granted camera permissions.');
+            showErrorModal('Error accessing camera. Please ensure you have granted camera permissions.');
         }
     }
 
@@ -116,24 +148,21 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            displayResult(data);
             if (data.status === 'success') {
                 currentRegistrationId = data.registration.id;
-                checkinActions.classList.remove('hidden');
+                showSuccessModal(data);
+                confirmButton.style.display = 'block';
             } else {
                 currentRegistrationId = null;
-                checkinActions.classList.add('hidden');
+                showErrorModal(data.message);
+                confirmButton.style.display = 'none';
                 playSound(false);
             }
         })
         .catch(error => {
-            displayResult({
-                status: 'error',
-                message: 'Error looking up registration',
-                error: error.message
-            });
             currentRegistrationId = null;
-            checkinActions.classList.add('hidden');
+            showErrorModal('Error looking up registration: ' + error.message);
+            confirmButton.style.display = 'none';
             playSound(false);
         });
     }
@@ -152,64 +181,84 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                // Update display with check-in confirmation
-                resultContent.innerHTML += `
-                    <div class="mt-4 p-4 border border-terminal-green rounded-lg">
-                        <h3 class="text-lg font-bold text-terminal-green mb-2">✓ Check-in Successful</h3>
-                        <p class="text-terminal-white">Checked in at: ${data.check_in_time}</p>
-                    </div>
-                `;
-                checkinActions.classList.add('hidden');
+                updateModalWithCheckinSuccess(data);
+                confirmButton.style.display = 'none';
                 playSound(true);
             } else {
-                displayError(data.message);
+                appendErrorToModal(data.message);
                 playSound(false);
             }
         })
         .catch(error => {
-            displayError('Error processing check-in');
+            appendErrorToModal('Error processing check-in');
             playSound(false);
         });
     }
 
-    // Display scan result
-    function displayResult(data) {
-        resultDiv.classList.remove('hidden');
+    // Show success modal
+    function showSuccessModal(data) {
         const registration = data.registration;
         
         let html = `
-            <div class="p-4 ${data.status === 'success' ? 'border-terminal-green' : 'border-terminal-red'} border rounded-lg">
-                <h3 class="text-lg font-bold mb-4 ${data.status === 'success' ? 'text-terminal-green' : 'text-terminal-red'}">
+            <div class="p-4 border-terminal-green border rounded-lg">
+                <h3 class="text-lg font-bold mb-4 text-terminal-green">
                     ${data.message}
                 </h3>
-                ${registration ? `
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="text-terminal-purple">Name:</div>
-                        <div class="text-terminal-white">${registration.name}</div>
-                        
-                        <div class="text-terminal-purple">Email:</div>
-                        <div class="text-terminal-white">${registration.email}</div>
-                        
-                        <div class="text-terminal-purple">Event:</div>
-                        <div class="text-terminal-white">${registration.event}</div>
-                        
-                        <div class="text-terminal-purple">Status:</div>
-                        <div class="text-terminal-white">${registration.status}</div>
-                        
-                        ${data.check_in_time ? `
-                            <div class="text-terminal-purple">Checked In At:</div>
-                            <div class="text-terminal-white">${data.check_in_time}</div>
-                        ` : ''}
-                    </div>
-                ` : ''}
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-terminal-purple">Name:</div>
+                    <div class="text-terminal-white">${registration.name}</div>
+                    
+                    <div class="text-terminal-purple">Email:</div>
+                    <div class="text-terminal-white">${registration.email}</div>
+                    
+                    <div class="text-terminal-purple">Event:</div>
+                    <div class="text-terminal-white">${registration.event}</div>
+                    
+                    <div class="text-terminal-purple">Status:</div>
+                    <div class="text-terminal-white">${capitalize(registration.status)}</div>
+                    
+                    ${data.check_in_time ? `
+                        <div class="text-terminal-purple">Checked In At:</div>
+                        <div class="text-terminal-white">${data.check_in_time}</div>
+                    ` : ''}
+                </div>
             </div>
         `;
         
         resultContent.innerHTML = html;
+        resultModal.style.display = 'block';
+        modalOpen = true;
     }
 
-    // Display error message
-    function displayError(message) {
+    // Show error modal
+    function showErrorModal(message) {
+        let html = `
+            <div class="p-4 border-terminal-red border rounded-lg">
+                <h3 class="text-lg font-bold mb-4 text-terminal-red">
+                    Error
+                </h3>
+                <p class="text-terminal-white">${message}</p>
+            </div>
+        `;
+        
+        resultContent.innerHTML = html;
+        resultModal.style.display = 'block';
+        modalOpen = true;
+    }
+
+    // Update modal with check-in success information
+    function updateModalWithCheckinSuccess(data) {
+        const successDiv = document.createElement('div');
+        successDiv.className = 'mt-4 p-4 border border-terminal-green rounded-lg';
+        successDiv.innerHTML = `
+            <h3 class="text-lg font-bold text-terminal-green mb-2">✓ Check-in Successful</h3>
+            <p class="text-terminal-white">Checked in at: ${data.check_in_time}</p>
+        `;
+        resultContent.appendChild(successDiv);
+    }
+
+    // Append error to modal
+    function appendErrorToModal(message) {
         const errorDiv = document.createElement('div');
         errorDiv.className = 'mt-4 p-4 border border-terminal-red rounded-lg';
         errorDiv.innerHTML = `
@@ -225,9 +274,21 @@ document.addEventListener('DOMContentLoaded', function() {
         audio.play();
     }
 
+    // Close modal
+    function closeModal() {
+        resultModal.style.display = 'none';
+        currentRegistrationId = null;
+        modalOpen = false;
+    }
+
     // Scan for QR codes
     function scan() {
+        console.log("Scanning...");
         if (!scanning) return;
+        if (modalOpen) {
+            setTimeout(scan, 1000);
+            return;
+        }
 
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
             canvasElement.height = video.videoHeight;
@@ -238,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const code = jsQR(imageData.data, imageData.width, imageData.height);
             if (code) {
                 processScanResult(code.data);
-                // Pause scanning briefly after successful scan
+                // Pause scanning while modal is open
                 scanning = false;
                 setTimeout(() => { scanning = true; }, 2000);
             }
@@ -262,10 +323,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return cookieValue;
     }
 
+    function capitalize(s) {
+        return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
     // Event Listeners
     startButton.addEventListener('click', () => startVideo(cameraSelect.value));
     stopButton.addEventListener('click', stopVideo);
-    checkinButton.addEventListener('click', processCheckin);
+    confirmButton.addEventListener('click', processCheckin);
+    closeModalButton.addEventListener('click', closeModal);
     cameraSelect.addEventListener('change', () => {
         if (scanning) {
             stopVideo();
@@ -281,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error accessing camera:', error);
-            alert('Error accessing camera. Please ensure you have granted camera permissions.');
+            showErrorModal('Error accessing camera. Please ensure you have granted camera permissions.');
         });
 });
 </script>
