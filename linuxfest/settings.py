@@ -133,7 +133,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-DEFAULT_FROM_EMAIL = "LinuxFest <admin@linuxfest.fossbu.co>"
+DEFAULT_FROM_EMAIL = "FOSS Club <foss@bennett.edu.in>"
 # Email settings
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
